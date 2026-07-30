@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+*.tsbuildinfo
+
+# Database
+prisma/*.db
+prisma/*.db-journal
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Generated
+next-env.d.ts
+
+# Playwright test artifacts
+.playwright-cli/
+
+# WorkBuddy project data
+.workbuddy/

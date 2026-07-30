@@ -1,0 +1,19 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Alert, Button, Card, Form, Input, Select, Space, Table, Tag, Typography, message } from "antd";
+import { ExperimentOutlined } from "@ant-design/icons";
+import { get, post } from "@/lib/http";
+
+interface Agent { id: string; name: string }
+interface Run { id: string; agentId: string; status: string }
+interface Round { id: string; skillId?: string; status: string; trainRunId?: string; validationRunId?: string; candidateEdits: unknown[]; result?: unknown }
+export default function SkillOptPage() {
+  const [agents, setAgents] = useState<Agent[]>([]); const [runs, setRuns] = useState<Run[]>([]); const [rounds, setRounds] = useState<Round[]>([]); const [agentId, setAgentId] = useState(""); const [form] = Form.useForm();
+  const load = async () => { const [agentItems, runItems] = await Promise.all([get<Agent[]>("/api/agents"), get<Run[]>("/api/runs")]); setAgents(agentItems); setRuns(runItems); setAgentId((current) => current || agentItems[0]?.id || ""); };
+  const loadRounds = async () => { if (agentId) setRounds(await get<Round[]>(`/api/skillopt/rounds?agentId=${agentId}`)); };
+  useEffect(() => { void load(); }, []); useEffect(() => { void loadRounds(); }, [agentId]);
+  const create = async () => { const values = await form.validateFields(); let edits; try { edits = JSON.parse(values.edits); } catch { message.error("编辑 JSON 无效"); return; } await post("/api/skillopt/rounds", { agentId, ...values, edits, apply: values.apply ?? false }); message.success("已创建优化轮次"); form.resetFields(); void loadRounds(); };
+  const validate = async (id: string) => { const validationRunId = window.prompt("输入已完成的 Validation Run ID"); if (!validationRunId) return; await post(`/api/skillopt/rounds/${id}/validate`, { validationRunId }); message.success("验证结果已记录"); void loadRounds(); };
+  return <div><Typography.Title level={3}><ExperimentOutlined /> SkillOpt 受控优化</Typography.Title><Alert type="warning" showIcon style={{ marginBottom: 16 }} message="每轮最多五条 add/delete/replace 编辑；只允许以独立 Validation Run 决定接受，未通过的编辑自动写入 Rejected Buffer。" /><Card style={{ marginBottom: 16 }}><Space><Select value={agentId} onChange={setAgentId} style={{ width: 200 }} options={agents.map((item) => ({ value: item.id, label: item.name || item.id }))} /></Space></Card><Card title="创建候选优化轮次" style={{ marginBottom: 16 }}><Form form={form} layout="vertical"><Form.Item name="skillId" label="Skill ID"><Input /></Form.Item><Form.Item name="skillPath" label="Skill 文件路径"><Input placeholder="echo/canvas-ops.md" /></Form.Item><Form.Item name="trainRunId" label="Train Run" rules={[{ required: true }]}><Select options={runs.filter((item) => item.agentId === agentId && item.status === "completed").map((item) => ({ value: item.id, label: item.id }))} /></Form.Item><Form.Item name="edits" label="Bounded Edit JSON" rules={[{ required: true }]}><Input.TextArea rows={4} placeholder={'[{"op":"replace","target":"旧规则","content":"新规则"}]'} /></Form.Item><Form.Item name="apply" valuePropName="checked"><Select options={[{ value: false, label: "只记录候选" }, { value: true, label: "应用到 Skill 文件并待验证" }]} /></Form.Item><Button type="primary" onClick={() => void create()}>创建轮次</Button></Form></Card><Card title="优化历史"><Table rowKey="id" dataSource={rounds} columns={[{ title: "轮次", dataIndex: "id", ellipsis: true }, { title: "Skill", dataIndex: "skillId" }, { title: "状态", dataIndex: "status", render: (value: string) => <Tag>{value}</Tag> }, { title: "Train", dataIndex: "trainRunId", ellipsis: true }, { title: "Validation", dataIndex: "validationRunId", ellipsis: true }, { title: "操作", render: (_: unknown, row: Round) => row.status !== "accepted" && row.status !== "rejected" ? <Button type="link" onClick={() => void validate(row.id)}>提交验证</Button> : "-" }]} /></Card></div>;
+}

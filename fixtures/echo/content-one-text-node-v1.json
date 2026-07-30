@@ -1,0 +1,6 @@
+{
+  "canvasType": "content",
+  "nodes": [{ "id": "node-role", "type": "text", "title": "初始设定" }],
+  "connections": [],
+  "fixtureVersion": "v1"
+}

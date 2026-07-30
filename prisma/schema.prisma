@@ -1,0 +1,318 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id            String            @id
+  name          String
+  agentTypes    String            @default("[]")
+  standardPath  String
+  description   String?
+  status        String            @default("active")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  connections   AgentConnection[]
+  datasets      Dataset[]
+  runs          Run[]
+  traces        TraceRecord[]
+  clusters      ProblemCluster[]
+  skillOptRounds SkillOptRound[]
+}
+
+model AgentConnection {
+  id             String   @id @default(cuid())
+  agentId        String
+  protocol       String
+  endpoint       String?
+  callbackPath   String?
+  secretEnvRef   String?
+  capabilities   String   @default("{}")
+  timeoutMs      Int      @default(30000)
+  status         String   @default("active")
+  lastVerifiedAt DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  runs           Run[]
+
+  @@index([agentId, status])
+}
+
+model Dataset {
+  id          String   @id @default(cuid())
+  agentId     String
+  filePath    String
+  split       String   @default("capability")
+  version     String
+  contentHash String   @default("")
+  caseCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  runs        Run[]
+
+  @@unique([agentId, filePath])
+  @@index([agentId, split])
+}
+
+model Run {
+  id              String           @id @default(cuid())
+  agentId         String
+  datasetId       String?
+  connectionId    String?
+  baselineRunId   String?
+  source          String           @default("eval")
+  mode            String           @default("simulate")
+  status          String           @default("queued")
+  configuration   String           @default("{}")
+  summary         String?
+  gateResult      String?
+  gatePassed      Boolean?
+  cancellationReason String?
+  queuedAt        DateTime         @default(now())
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  agent           Agent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  dataset         Dataset?         @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  connection      AgentConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  baselineRun     Run?             @relation("RunBaseline", fields: [baselineRunId], references: [id], onDelete: SetNull)
+  comparedRuns    Run[]            @relation("RunBaseline")
+  trials                   RunTrial[]
+  traces                   TraceRecord[]
+  trainSkillOptRounds      SkillOptRound[] @relation("SkillOptTrain")
+  validationSkillOptRounds SkillOptRound[] @relation("SkillOptValidation")
+
+  @@index([agentId, status, queuedAt])
+  @@index([baselineRunId])
+}
+
+model RunTrial {
+  id                 String       @id @default(cuid())
+  runId              String
+  caseId             String
+  caseSnapshot       String
+  risk               String
+  scenario           String
+  attempt            Int
+  status             String       @default("queued")
+  executorType       String
+  isolationNamespace String?
+  cleanupStatus      String       @default("pending")
+  timeoutMs          Int          @default(30000)
+  startedAt          DateTime?
+  finishedAt         DateTime?
+  errorMessage       String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  run                Run          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  trace              TraceRecord?
+  annotations        Annotation[]
+  reviewTasks        HumanReviewTask[]
+  badcases           Badcase[]
+
+  @@unique([runId, caseId, attempt])
+  @@index([runId, status])
+  @@index([caseId, risk])
+}
+
+model TraceRecord {
+  id                String   @id @default(cuid())
+  traceId           String   @unique
+  eventKey          String?  @unique
+  sessionId         String
+  turnId            String
+  agentType         String
+  agentId           String
+  skillId           String?
+  caseId            String?
+  source            String   @default("eval")
+  runId             String?
+  trialId           String?  @unique
+  input             String
+  spans             String
+  outcome           String
+  stateBefore       String?
+  stateAfter        String?
+  usage             String   @default("{}")
+  versions          String   @default("{}")
+  meta              String?
+  startTime         DateTime
+  durationMs        Int?
+  createdAt         DateTime @default(now())
+  agent             Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  run               Run?     @relation(fields: [runId], references: [id], onDelete: SetNull)
+  trial             RunTrial? @relation(fields: [trialId], references: [id], onDelete: SetNull)
+  annotations       Annotation[]
+  badcase           Badcase?
+  productionEvent   ProductionIngestEvent?
+
+  @@index([agentId, source, createdAt])
+  @@index([runId, caseId])
+  @@index([skillId])
+}
+
+model Annotation {
+  id               String    @id @default(cuid())
+  traceRecordId    String
+  trialId          String?
+  targetLevel      String
+  scorerType       String
+  ruleType         String?
+  verdict          String
+  reason           String?
+  confidence       Float?
+  score            Float?
+  issueType        String?
+  problemCategory  String?
+  phenomenon       String?
+  details          String?
+  needsHumanReview Boolean   @default(false)
+  spotChecked      Boolean   @default(false)
+  humanOverride    String?
+  reviewerId       String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  trace            TraceRecord @relation(fields: [traceRecordId], references: [id], onDelete: Cascade)
+  trial            RunTrial? @relation(fields: [trialId], references: [id], onDelete: SetNull)
+  reviewTasks      HumanReviewTask[]
+
+  @@index([traceRecordId, scorerType])
+  @@index([trialId, verdict])
+}
+
+model HumanReviewTask {
+  id              String    @id @default(cuid())
+  annotationId    String?
+  trialId         String?
+  reason          String
+  status          String    @default("pending")
+  proposedVerdict String?
+  resolvedVerdict String?
+  reviewerId      String?
+  evidence        String?
+  createdAt       DateTime  @default(now())
+  resolvedAt      DateTime?
+  annotation      Annotation? @relation(fields: [annotationId], references: [id], onDelete: SetNull)
+  trial           RunTrial? @relation(fields: [trialId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
+
+model Badcase {
+  id            String          @id @default(cuid())
+  traceRecordId String?         @unique
+  trialId       String?
+  caseId        String?
+  risk          String?
+  source        String          @default("eval-fail")
+  dataSource    String          @default("eval")
+  status        String          @default("pending")
+  triageResult  String?
+  clusterId     String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  trace         TraceRecord?    @relation(fields: [traceRecordId], references: [id], onDelete: SetNull)
+  trial         RunTrial?       @relation(fields: [trialId], references: [id], onDelete: SetNull)
+  cluster       ProblemCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+  rca           RcaRecord?
+
+  @@index([status, risk, createdAt])
+  @@index([clusterId])
+}
+
+model RcaRecord {
+  id                String   @id @default(cuid())
+  badcaseId         String   @unique
+  candidateModules  String   @default("[]")
+  moduleDiagnosis   String   @default("{}")
+  responsibleModule String
+  problemCategory   String
+  problemEnum       String
+  confidence        Float?
+  evidence          String?
+  report            String?
+  fixActions        String   @default("[]")
+  owner             String?
+  specPath          String?
+  verificationRunId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  badcase           Badcase  @relation(fields: [badcaseId], references: [id], onDelete: Cascade)
+
+  @@index([problemEnum])
+}
+
+model ProblemCluster {
+  id                  String    @id @default(cuid())
+  agentId             String
+  skillId             String?
+  rootCause           String    @default("unknown")
+  category            String?
+  scenario            String?
+  risk                String?
+  tool                String?
+  size                Int       @default(1)
+  status              String    @default("open")
+  signature           String?
+  concentratedVersion String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  agent               Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  badcases            Badcase[]
+
+  @@index([agentId, rootCause, status])
+}
+
+model SkillOptRound {
+  id             String   @id @default(cuid())
+  agentId        String
+  skillId        String?
+  status         String   @default("draft")
+  trainRunId     String?
+  validationRunId String?
+  candidateEdits String   @default("[]")
+  result         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  trainRun       Run?     @relation("SkillOptTrain", fields: [trainRunId], references: [id], onDelete: SetNull)
+  validationRun  Run?     @relation("SkillOptValidation", fields: [validationRunId], references: [id], onDelete: SetNull)
+  rejectedEdits  RejectedEdit[]
+
+  @@index([agentId, skillId, status])
+}
+
+model RejectedEdit {
+  id             String        @id @default(cuid())
+  skillOptRoundId String?
+  skillId        String?
+  edit           String
+  reason         String
+  validationResult String?
+  createdAt      DateTime      @default(now())
+  round          SkillOptRound? @relation(fields: [skillOptRoundId], references: [id], onDelete: SetNull)
+
+  @@index([skillId, createdAt])
+}
+
+model ProductionIngestEvent {
+  id             String      @id @default(cuid())
+  eventKey       String      @unique
+  traceRecordId  String?     @unique
+  authorizationRef String
+  signatureValid Boolean
+  redactionResult String     @default("{}")
+  sourceSystem   String
+  receivedAt     DateTime   @default(now())
+  trace          TraceRecord? @relation(fields: [traceRecordId], references: [id], onDelete: SetNull)
+
+  @@index([sourceSystem, receivedAt])
+}

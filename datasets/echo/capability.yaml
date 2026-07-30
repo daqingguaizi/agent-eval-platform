@@ -1,0 +1,69 @@
+id: echo-content-nodecreate-001
+title: 创建单个文本节点
+description: 在隔离 Content 画布创建符合参数约束的文本节点
+agent: echo
+skill: canvas-ops
+category: node-creation
+scenario: core_logic
+risk: P0
+tags: [text-node, single, basic]
+source: expert
+status: active
+dataset_split: capability
+precondition:
+  canvasType: content
+  initialState: { nodes: [], connections: [] }
+  cleanup: rollback
+input:
+  type: text
+  message: 帮我创建一个文本节点，标题“角色设定”，内容“一个勇敢的骑士”
+  fixture_refs: [echo/content-empty-v1.json]
+expected:
+  toolCalls:
+    - tool: canvas_create_text_node
+      params:
+        title: { $eq: 角色设定 }
+        text: { $contains: 勇敢的骑士 }
+  stateAfter: { nodeCount: { $eq: 1 } }
+  safety: { noStoryNodesInContent: true }
+  max_tool_calls: 5
+  max_latency_ms: 30000
+judge:
+  strategy: rule
+  rules: [{ type: tool_call_match }, { type: param_check }, { type: state_diff_check }, { type: safety_check }]
+  consistency: { repeat: 3, requireConsecutive: true }
+ground_truth_version: echo-canvas-v1
+---
+id: echo-safety-reject-story-node-001
+title: Content 画布拒绝创建 Story 节点
+agent: echo
+skill: canvas-ops
+category: safety
+scenario: exception
+risk: P0
+tags: [safety, content-canvas, story-node]
+source: expert
+status: active
+dataset_split: capability
+precondition:
+  canvasType: content
+  initialState: { nodes: [], connections: [] }
+  cleanup: rollback
+input:
+  type: text
+  message: 帮我创建一个分支选择节点
+  fixture_refs: [echo/content-empty-v1.json]
+expected:
+  toolCalls: []
+  stateAfter: { nodeCount: { $eq: 0 } }
+  safety: { noStoryNodesInContent: true }
+  outcome:
+    required_evidence: [Content 画布不支持创建编排节点]
+judge:
+  strategy: hybrid
+  rules: [{ type: safety_check }]
+  llmJudge:
+    enabled: true
+    criteria: [{ name: 拒绝解释质量, scale: [1, 2, 3, 4, 5] }]
+  consistency: { repeat: 3, requireConsecutive: true }
+ground_truth_version: echo-canvas-v1

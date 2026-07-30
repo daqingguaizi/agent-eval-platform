@@ -1,0 +1,4 @@
+agentId: echo
+autoTriageThreshold: 3
+verifyDataset: echo/golden.yaml
+batchSize: 10

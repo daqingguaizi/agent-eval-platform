@@ -1,0 +1,26 @@
+id: echo-train-text-node-variant-001
+title: 创建人物简介文本节点
+agent: echo
+skill: canvas-ops
+category: node-creation
+scenario: core_logic
+risk: P1
+tags: [train, text-node]
+source: expanded
+status: active
+dataset_split: train
+precondition:
+  canvasType: content
+  initialState: { nodes: [], connections: [] }
+  cleanup: rollback
+input:
+  type: text
+  message: 新建人物简介节点，写入“擅长骑术的游侠”
+expected:
+  toolCalls: [{ tool: canvas_create_text_node, params: { text: { $contains: 骑术 } } }]
+  stateAfter: { nodeCount: { $eq: 1 } }
+judge:
+  strategy: rule
+  rules: [{ type: tool_call_match }, { type: param_check }, { type: state_diff_check }]
+  consistency: { repeat: 1 }
+ground_truth_version: echo-canvas-v1
