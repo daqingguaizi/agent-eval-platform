@@ -1,0 +1,55 @@
+id: CL-16
+title: story 最小可玩结构（章节+剧情+选项+结局）
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P1
+sampleType: 正例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 在这个编排画布上给我搭一个最小可玩的互动剧：主角在雨夜遇到一个陌生人，玩家可以选择搭话或走开，两条路各有一个结局。
+      purpose: target
+      expectedCanvasChange: 新增章节+起始剧情+选项+两条后续剧情/结局；全部用带 kind 的运行态连线连好，从起点可达结局
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_connect_nodes
+  expectedToolCalls: >-
+    `canvas_get_state` → 创建节点（`canvas_create_node` × N 或 `canvas_apply_ops`）→
+    `canvas_connect_nodes`（各连线带 kind）
+  alternativePaths: >-
+    先建节点再连线，或用 `canvas_apply_ops` 一次提交（**执行层 reorder-add-node-first 会把 add_node
+    提前，ops 顺序错误不判失败**）；结局用 story 节点 + metadata.storyEndingType 表达
+  forbiddenActions: 玩家路径连线不传 kind；引用不存在的节点 id；第一轮就创建大量节点（契约要求最小结构优先）；在回复中输出 ops JSON
+  requiredEvidence: canvas_get_state 返回的 canvasType=story；连线所用的节点 id 必须来自创建工具真实返回
+  outputFormat: 逐条说明建立的路径（起点→终点 + kind）；无 ```json
+  degradation: 被引用节点不存在时如实转述并说明未建立该连线
+  safetyAssertions: mustReportRejections
+  stateAssertions: >-
+    存在 story-chapter、story（起始）、story-choice、≥1 个结局节点；所有连线 fromNodeId/toNodeId
+    均存在；玩家路径连线 kind ∈ flow/story-choice/game-outcome；从起始剧情到至少一个结局可达
+budgets:
+  maxToolCalls: 12
+  maxLatencyMs: 60000
+  maxTokens: 8000
+  maxCostCny: 1
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - alternative_path_check
+    - output_format_check
+    - budget_check ＋ LLM Judge：编排可玩性
+  contractRefs: story-orchestration.stateAssertions「最小可玩结构中存在从起始剧情到至少一个结局节点的可达路径」
+  review: '**已确认**'

@@ -1,0 +1,44 @@
+schemaVersion: 1
+caseId: CL-20
+targetTurn: 2
+requiredSteps:
+  - canvas_get_state
+criteriaAliases:
+  - tool_call_match
+  - param_check
+  - state_diff_check
+  - degradation_check
+  - output_format_check
+  - budget_check
+behaviorCategory: story-orchestration
+risk: P1
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config:
+      tools:
+        - canvas_get_state
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: false
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: false
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - 直接说明该节点不存在并提议先创建；或调用 connect 后转述「连接节点失败：找不到节点 story-ending-01，请确认节点已创建且 id 正确。」
+  - 如实转述「连接节点失败：找不到节点 …」并说明未建立该连线
+  - '**已确认**'
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

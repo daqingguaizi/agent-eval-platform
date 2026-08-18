@@ -1,0 +1,38 @@
+id: NR-06
+title: 媒介未指定的生成请求先澄清
+version: 1
+source: badcase
+status: draft
+batch: gs-next-draft-1
+scenario: core_logic
+behaviorCategory: generation
+risk: P1
+sampleType: 变体回归
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 围绕「雨夜追逐」帮我做一版，先有氛围，再有故事感。
+      purpose: target
+      expectedCanvasChange: 不创建生成节点、不调用生成；询问要文本、图片、视频还是音频以及必要规格
+expectation:
+  targetTurn: 1
+  requiredSteps: [canvas_get_state]
+  alternativePaths: 读取状态后提出媒介与规格问题
+  forbiddenActions: 默认生成图片；同时生成多个媒介；声称流程已启动
+  requiredEvidence: 无 generation、无新增 config/image/video/audio 生成节点；最终澄清
+  outputFormat: 中文、明确提供可选择媒介与下一步
+  degradation: 关键媒介缺失时先澄清
+  stateAssertions: 画布不产生生成状态变化
+budgets:
+  maxToolCalls: 2
+  maxLatencyMs: 30000
+  maxTokens: 4000
+  maxCostCny: 0.1
+criteria:
+  rules: [tool_call_match, state_diff_check, degradation_check]
+  review: 判断问题是否足以让用户做出下一步选择

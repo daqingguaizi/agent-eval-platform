@@ -1,0 +1,45 @@
+id: CP-15
+title: 草地与小猫双参考图的绘本插图
+status: draft
+source: source-derived
+sourceTaskIds: ["047", "055"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2i
+taskPattern: multi_reference_image_composition
+supportStatus: approximate
+coverageTags: [trigger_route, artifact_reply, multi_reference]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: large_grassland.png
+    mediaType: image
+    sha256: 0bd66d72316835248b7bec9a80df5233568737bd6ec38421d8f9f2c059204e5e
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+  - fileName: standing_cat.jpg
+    mediaType: image
+    sha256: d2298d3fa679c0ee3bc79e4b867dc6d3f85c32b5d03dd0c3c5c694cecb768bc5
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: large_grassland.png
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+        - resourceRef: standing_cat.jpg
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 用第一张图的草地做场景，把第二张图里的小猫自然放到远处草地上，做成温暖的儿童绘本插图；天空、地形和整体光线保持自然。
+acceptance:
+  targetTurn: 1
+  keyPoints: [两个图片附件自动创建真实image节点, 同轮文本提示词节点, image模式, 草地场景, 小猫主体, 自然光线]
+  requiredEvidence: [两份附件资源哈希, 两个自动创建的真实image节点ID, 同轮文本节点, 两条图片参考连线, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, 两个image节点均由附件上传创建, 两个image和text均连接image链路]
+  degradation: 仅验收多参考创作意图，不承诺像素级局部合成。
+riskFlags: [composer_attachment_protocol_pending, approximate_edit, multi_reference_provider_limit]

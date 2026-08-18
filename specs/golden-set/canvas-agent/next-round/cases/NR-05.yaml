@@ -1,0 +1,42 @@
+id: NR-05
+title: 参考图驱动的视频生成链路与产物事实
+version: 1
+source: badcase
+status: draft
+batch: gs-next-draft-1
+scenario: core_logic
+behaviorCategory: generation
+risk: P1
+sampleType: 变体回归
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 建一个图片节点，内容是一张雨夜街头参考图。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 image 节点
+    - index: 2
+      message: 以这张图为参考，生成 6 秒的雨夜追车视频，保留霓虹倒影和手持镜头感。
+      purpose: target
+      expectedCanvasChange: 创建 video 模式流程，引用真实图片节点，并触发视频生成
+expectation:
+  targetTurn: 2
+  requiredSteps: [canvas_get_state]
+  alternativePaths: canvas_create_generation_flow(mode=video)；或等价 video 配置加 run_generation
+  forbiddenActions: 使用 image/text/audio 模式；未引用真实参考节点；编造产物或视频已完成
+  requiredEvidence: mode=video、referenceNodeIds、generation 记录、产物路径或真实错误
+  outputFormat: 中文说明实际状态，失败时如实说明
+  degradation: 无产物时不得声称已生成视频
+  stateAssertions: 存在 video 配置或 video 节点，参考关系可追溯
+budgets:
+  maxToolCalls: 8
+  maxLatencyMs: 120000
+  maxTokens: 8000
+  maxCostCny: 2
+criteria:
+  rules: [tool_call_match, state_diff_check, degradation_check]
+  review: 创意贴合只在真实视频产物可读时使用多模态 Judge/人工

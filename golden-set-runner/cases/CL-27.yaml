@@ -1,0 +1,58 @@
+id: CL-27
+title: 模糊的移动放大请求不改内容
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: layout-viewport
+risk: P2
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建两个文本节点，一个写「镜头一」一个写「镜头二」。
+      purpose: setup
+      expectedCanvasChange: 新增 2 个 text 节点
+    - index: 2
+      message: 「镜头二」挡住了，往右边挪一点，然后放大一点。
+      purpose: target
+      expectedCanvasChange: 该节点 x 增大、尺寸变大；两节点内容均不变
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_move_nodes
+    - canvas_resize_node
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_move_nodes`(items:[{id, dx>0}]) →
+    `canvas_resize_node`(id, width/height 大于原值)
+  alternativePaths: 传绝对坐标与传 dx 等价；用 `canvas_apply_ops` 批量提交等价；自行选定合理幅度即可，**无需反问用户具体数值**；先放大后移动等价
+  forbiddenActions: 使用不存在的节点 id（move 会被静默忽略）；在布局请求中夹带内容修改或删除；改动「镜头一」；向左移动或缩小（方向相反）；因数值不明确而拒绝执行
+  requiredEvidence: canvas_get_state 返回的目标节点真实 id 与原 position/尺寸（须以原值为基准计算新值）
+  outputFormat: 用自然语言说明把哪个节点往右挪了、放大了；无 ```json
+  degradation: 目标节点指代不明时才需要澄清；**本例目标明确，幅度模糊不构成澄清理由**
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: >-
+    nodeCount 保持 2；connectionCount 保持 0；目标节点 position.x **大于**原值；width 与 height
+    均不小于原值且至少一项大于原值；两节点 metadata.content 与 title 均未改动；「镜头一」position 与尺寸未变
+budgets:
+  maxToolCalls: 8
+  maxLatencyMs: 50000
+  maxTokens: 8000
+  maxCostCny: 0.6
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - forbidden_tool
+    - output_format_check
+    - budget_check ＋ LLM Judge：调整幅度是否合理（观察项
+    - 不计门禁）
+  contractRefs: behaviorCategories.layout-viewport
+  review: 已按修改意见调整 · 已确认

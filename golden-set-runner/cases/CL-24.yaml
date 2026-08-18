@@ -1,0 +1,46 @@
+id: CL-24
+title: 生成模式不明确须澄清
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: generation
+risk: P1
+sampleType: 负例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 帮我做一段关于「雨夜追逐」的东西。
+      purpose: target
+      expectedCanvasChange: 画布不产生生成流程；须先澄清要生成文本/图片/视频/音频哪一种
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - 无强制写工具
+  expectedToolCalls: '`canvas_get_state`（可选）→ 向用户澄清生成模式'
+  alternativePaths: 直接提问；或先读状态收窄范围后提问
+  forbiddenActions: 未确认生成模式就随意选择 generate_* 工具；四种模式全做一遍；猜测用户想要图片就直接生图
+  requiredEvidence: 若已调用工具须引用真实返回
+  outputFormat: 澄清须给出具体待确认项（列出 text/image/video/audio 四种可选）；无 ```json；不得出现成功声明
+  degradation: 用户意图不明确时说明需要用户明确选择，不要猜测
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 保持 0；connectionCount 保持 0
+budgets:
+  maxToolCalls: 1
+  maxLatencyMs: 20000
+  maxTokens: 3000
+  maxCostCny: 0.1
+criteria:
+  rules:
+    - forbidden_tool
+    - state_diff_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ LLM Judge：澄清正确性
+  contractRefs: generation.forbiddenActions「未确认生成模式即随意选择 generate_* 工具」
+  review: '**已确认**'

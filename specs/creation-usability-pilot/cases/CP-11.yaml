@@ -1,0 +1,36 @@
+id: CP-11
+title: 卧室参考图的晨光镜头
+status: draft
+source: source-derived
+sourceTaskIds: ["048"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2v
+taskPattern: reference_image_to_video
+supportStatus: provider_gated
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: warm_bedroom.jpg
+    mediaType: image
+    sha256: 854a9ad08b7b7ca6772fd8b8c37f47f0619585380d6c50092a3ad7f255a0fcb6
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: warm_bedroom.jpg
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 以我上传的卧室图生成两秒安静镜头：晨光从窗边缓慢移动到床面，保持房间布局、家具和暖色调不变。
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, video模式, 晨光移动, 保留布局家具暖色调]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接video链路]
+  degradation: 附件自动入画布或生成失败时如实说明。
+riskFlags: [composer_attachment_protocol_pending, provider_variability]

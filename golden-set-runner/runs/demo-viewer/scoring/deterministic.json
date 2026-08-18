@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "specVersion": "1.5.0",
+  "runId": "demo-viewer",
+  "generatedAt": "2026-08-18T00:00:00.000Z",
+  "cases": [
+    {
+      "caseId": "CP-99",
+      "status": "pending_human_review",
+      "hardGateFailed": false,
+      "dimensionScores": { "executionEvidence": 100, "taskOrchestration": 100 },
+      "rules": [
+        { "id": "AGENT_TARGET_TURN_COMPLETED", "status": "pass", "hardGate": true, "score": 100, "reason": "演示目标轮已完成。", "evidence": [{ "path": "CP-99/result.json", "label": "目标轮执行结果" }] },
+        { "id": "REQUIRED_CONTEXT_READ", "status": "pass", "hardGate": true, "score": 100, "reason": "演示画布状态已读取。", "evidence": [{ "path": "CP-99/evidence/canvas-snapshot.json", "label": "画布快照" }] },
+        { "id": "REQUIRED_USER_OPERATION", "status": "pass", "hardGate": true, "score": 100, "reason": "演示必要生成操作已执行。", "evidence": [{ "path": "CP-99/evidence/canvas-snapshot.json", "label": "画布快照" }] },
+        { "id": "EXPECTED_CANVAS_STRUCTURE", "status": "pass", "hardGate": true, "score": 100, "reason": "演示节点结构完整。", "evidence": [{ "path": "CP-99/evidence/canvas-snapshot.json", "label": "画布快照" }] }
+      ]
+    }
+  ]
+}

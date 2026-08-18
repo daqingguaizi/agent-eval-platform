@@ -1,0 +1,32 @@
+schemaVersion: 1
+baselineId: certified-baseline-v1
+runId: gs-full-1
+assessmentId: baseline-v1
+status: pending_human_certification
+trialCount: 1
+roles:
+  baseline:
+    cases: all
+    purpose: 首轮人工认证、规则评分回归与后续版本比较基准
+  calibration:
+    cases: pending_human_selection
+    purpose: 必须在人类完成50条评分后，按正负边界对抗、P0、生成和争议样本抽取
+  regression:
+    cases: pending_adjudication
+    purpose: 已确认的P0/P1 Badcase与代表成功样本；由裁决结果决定入集
+  capability:
+    cases: pending_new_cases
+    purpose: 允许用于定位能力缺口和产生优化建议
+  selection:
+    cases: pending_new_held_out_cases
+    purpose: 独立验收候选修改，不得参与Prompt/Skill优化设计
+  test:
+    cases: pending_new_hidden_cases
+    purpose: 最终泛化报告，训练和日常调试期间不可查看
+  onlineReplay:
+    cases: pending_deidentified_cases
+    purpose: 经脱敏、Ground Truth确认后的线上真实分布回放
+constraints:
+  - gs-full-1一旦用于指导Prompt、Skill、工具或模型优化，不得再作为唯一Selection或Test门禁。
+  - 基线N=1不得输出pass@k、pass^k或稳定性结论。
+  - P0稳定性使用N=5，P1常规回归使用N=3；开始前必须补齐独立Selection/Test。

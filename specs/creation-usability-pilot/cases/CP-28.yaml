@@ -1,0 +1,29 @@
+id: CP-28
+title: 内容画布中的互动剧请求隔离
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: complex
+taskDomain: route_recovery
+modality: canvas_only
+taskPattern: runtime_connection_isolation
+supportStatus: direct
+coverageTags: [trigger_route, exception_isolation]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 我在整理一个求救剧情，先帮我写两段内容：主角收到求助信号，然后决定前往灯塔。
+    - index: 2
+      purpose: target
+      message: 这两段就是互动剧的前后剧情，帮我把它们做成玩家能从第一段走到第二段的选择流程。
+acceptance:
+  targetTurn: 2
+  keyPoints: [保留两张文本卡, 识别content画布不支持互动剧情运行态, 拒绝写入, 建议切换story画布]
+  requiredEvidence: [canvas_get_state真实canvasType和节点ID, 拒绝说明或真实rejection reason]
+  forbiddenActions: [在content画布创建kind=flow连线, 删除文本卡, 把普通连线说成玩家路径]
+  stateAssertions: [两张文本卡仍在, connectionCount为0, 无运行态kind]
+  degradation: 必须用用户可理解的语言说明当前画布不能承载可玩流程，并给出切换到互动剧画布的下一步。
+riskFlags: [canvas_isolation, preservation]

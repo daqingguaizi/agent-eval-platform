@@ -1,0 +1,48 @@
+schemaVersion: 1
+caseId: OQ-02
+targetTurn: 1
+requiredSteps:
+  - canvas_get_state
+  - canvas_connect_nodes
+criteriaAliases:
+  - tool_call_match
+  - param_check
+  - state_diff_check
+  - output_format_check
+  - budget_check ＋ **LLM Judge：编排可玩性（rubric：最小可玩结构是否完整
+  - 路径是否可达结局）**
+behaviorCategory: story-orchestration
+risk: P1
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config:
+      tools:
+        - canvas_get_state
+        - canvas_connect_nodes
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: false
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: TOOL_READ_BEFORE_WRITE
+    hardGate: false
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: false
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - 分步建/一次 apply_ops 等价；ops 顺序错误不判失败；结局用 story + metadata.storyEndingType 表达
+  - 某条连线未建立时如实说明
+  - 待确认 · 修改意见：已确认
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

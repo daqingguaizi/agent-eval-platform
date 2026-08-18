@@ -1,0 +1,51 @@
+id: OQ-03
+title: 生成提示词与创作意图贴合
+version: 1
+source: expert
+status: active
+scenario: output_quality
+behaviorCategory: generation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 我要的画面感是：九十年代港片质感、霓虹、湿漉漉的街、人物背对镜头。帮我把这个做成生图的提示词并生成。
+      purpose: target
+      expectedCanvasChange: 新增提示词节点（含具体化的提示词）+ image 配置节点 + 连线，并触发生成
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_generate_image`(prompt) 或
+    `canvas_create_image_prompt_flow`(prompt, autoRun)
+  alternativePaths: '`canvas_create_generation_flow`(mode=image) + `canvas_run_generation` 等价'
+  forbiddenActions: prompt 直接照抄用户原话不做任何提示词化处理；prompt 丢失用户指定的关键要素（港片质感 / 霓虹 / 湿街 / 背对镜头）；编造生成结果
+  requiredEvidence: canvas_get_state 真实返回；生成工具真实返回
+  outputFormat: 说明生成的提示词内容与已触发生成；无 ```json
+  degradation: 生成失败时如实报告失败原因
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: >-
+    提示词节点 metadata.content **同时包含**四个关键要素的表达；配置节点 mode/generationMode =
+    image；两者之间有连线
+budgets:
+  maxToolCalls: 8
+  maxLatencyMs: 120000
+  maxTokens: 5000
+  maxCostCny: 2
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ **LLM Judge：创意相关性（rubric：生成文案/提示词与用户创作意图的贴合程度）**
+  contractRefs: judgeCriteria.创意相关性
+  review: 待确认 · 修改意见：已确认

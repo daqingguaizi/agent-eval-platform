@@ -1,0 +1,31 @@
+id: CP-25
+title: 宫斗互动剧新增试探分支
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: creative
+taskDomain: canvas_orchestration
+modality: canvas_only
+taskPattern: incremental_story_branch_edit
+supportStatus: direct
+coverageTags: [canvas_story, artifact_reply, existing_structure_edit]
+canvasType: story
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 我想做一个古装宫斗互动剧。第一章里，女主在宫宴前收到一张匿名纸条，纸条说有人要陷害她。请帮我做出章节、开场和两个选择：立刻告诉皇后，或者先去见送信的宫女。
+    - index: 2
+      purpose: setup
+      message: 给两条选择各写一段后续：告诉皇后会得到一枚令牌，见宫女会得到半句口供；两条线都先停在拿到线索这里。
+    - index: 3
+      purpose: target
+      message: 我想让见宫女这条线更有张力：在拿到半句口供后，加一个「追问幕后主使」或「先回宴席」的选择，两个结果都要能继续到下一章；原来的皇后线不要动。
+acceptance:
+  targetTurn: 3
+  keyPoints: [既有见宫女分支保留, 新增二级选择, 两个结果均可继续, 皇后线不变]
+  requiredEvidence: [真实节点与连线ID, 新storyChoices的唯一outcomeId, 两条新增story-choice连线, 皇后线路径快照]
+  stateAssertions: [皇后线节点和连接不变, 新选择挂在见宫女线的后续节点, 两个新增结果均可达下一章, 无重复或悬挂outcomeId]
+  degradation: 失败时必须区分已保留的原结构、已新增的节点和未完成的连线。
+riskFlags: [incremental_branching, story_reachability, preservation, existing_structure_edit]

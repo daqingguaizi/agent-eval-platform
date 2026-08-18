@@ -1,0 +1,25 @@
+id: CP-04
+title: 雨夜街头短片海报
+status: draft
+source: source-derived
+sourceTaskIds: ["024"]
+tier: vanilla
+taskDomain: content_creation
+modality: t2i
+taskPattern: text_to_image
+supportStatus: direct
+coverageTags: [artifact_reply]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 做一张竖版雨夜电影海报：雨夜街头的路面有霓虹倒影，一把透明雨伞放在画面右侧，左侧留出干净的片名空间。
+acceptance:
+  targetTurn: 1
+  keyPoints: [image模式, 同轮文本提示词节点, 雨夜街头, 霓虹倒影, 右侧雨伞, 左侧留白]
+  requiredEvidence: [真实文本节点ID, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, 文本节点与image生成链路可追溯]
+  degradation: 失败不得宣称已完成。
+riskFlags: [artifact_semantics]

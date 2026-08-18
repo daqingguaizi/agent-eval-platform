@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: creation-usability-pilot
+version: 2026-08-12.1
+target: echo-infinite-canvas-8.12
+sourceManifest: ../../specs/creation-usability-pilot/manifest.yaml
+resourceRegistry: ../../specs/creation-usability-pilot/resource-registry.yaml
+caseDirectory: ../../specs/creation-usability-pilot/cases
+execution:
+  initialState: blank
+  repeat: 1
+  scoring: disabled
+  archiveExternalArtifacts: true
+caseOrder:
+  - CP-01
+  - CP-02
+  - CP-03
+  - CP-04
+  - CP-05
+  - CP-06
+  - CP-07
+  - CP-08
+  - CP-09
+  - CP-10
+  - CP-11
+  - CP-12
+  - CP-13
+  - CP-14
+  - CP-15
+  - CP-16
+  - CP-17
+  - CP-18
+  - CP-19
+  - CP-20
+  - CP-21
+  - CP-22
+  - CP-23
+  - CP-24
+  - CP-25
+  - CP-26
+  - CP-27
+  - CP-28
+  - CP-29
+  - CP-30

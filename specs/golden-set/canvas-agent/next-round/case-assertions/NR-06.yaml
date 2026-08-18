@@ -1,0 +1,18 @@
+schemaVersion: 1
+caseId: NR-06
+targetTurn: 1
+requiredSteps: [canvas_get_state]
+behaviorCategory: generation
+risk: P1
+ruleBindings:
+  - {ruleId: TRACE_TARGET_TURN, hardGate: true}
+  - {ruleId: TRACE_FINAL_STATE, hardGate: true}
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config: {tools: [canvas_get_state]}
+  - {ruleId: OUTPUT_NO_JSON_OPS, hardGate: false}
+  - {ruleId: BUDGET_OBSERVE}
+rubricIds: [RUBRIC_EVIDENCE_FAITHFULNESS, RUBRIC_TASK_RESOLUTION, RUBRIC_CLARITY_ACTIONABILITY]
+humanFocus: [是否无生成副作用, 澄清是否包含媒介和必要规格]
+budgetPolicy: {maxTokens: observe_only, maxToolCalls: warning, maxLatencyMs: warning, maxCostCny: observe_only}
+sourceNotes: [需在接入 Runner 前补 NO_GENERATION_SIDE_EFFECT 规则]

@@ -1,0 +1,53 @@
+id: CL-02
+title: 批量创建三个文本节点
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-creation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 帮我一次建三个文本节点，分别写第一幕、第二幕、第三幕的梗概，竖着排。
+      purpose: target
+      expectedCanvasChange: 新增 3 个 text 节点，纵向排列，各含对应幕梗概
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_create_text_nodes
+  expectedToolCalls: '`canvas_get_state` → `canvas_create_text_nodes`(items 3 项, direction=column)'
+  alternativePaths: >-
+    3 次 `canvas_create_text_node` 等价；`canvas_apply_ops` 提交 3 条 add_node 等价；未传
+    direction 而用 y 坐标错开等价；**坐标重叠不判失败**（执行层 non-overlapping-position 沿 y 下移
+    margin=24）
+  forbiddenActions: 只建 1 个节点把三幕塞进同一个 content；创建数量与要求不符
+  requiredEvidence: canvas_get_state 真实返回；批量创建返回的 3 个节点 id
+  outputFormat: 说明创建了 3 个文本节点及各自主题；无 ```json
+  degradation: 部分创建失败时说明成功几个、失败几个
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 0→3；三节点 type 均为 text；三节点 metadata.content 分别对应三幕；节点位置不完全重合
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.5
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - alternative_path_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    behaviorCategories.node-creation；executionNormalizations.non-overlapping-position
+  review: '**已确认**'

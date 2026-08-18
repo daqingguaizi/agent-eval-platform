@@ -1,0 +1,42 @@
+id: CP-29
+title: 图片附件未能入画布时的诚实降级
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: complex
+taskDomain: route_recovery
+modality: i2v
+taskPattern: composer_attachment_failure_recovery
+supportStatus: provider_gated
+coverageTags: [trigger_route, exception_isolation]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: large_castle.png
+    mediaType: image
+    sha256: 33c3c592f80a12a93e4e7f6eb3c42776a9d87b507bb79855506ccb0cefb1e6da
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: Runner 注入一次可追溯的附件自动入画布失败；本阶段不执行。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: large_castle.png
+          mediaType: image
+          expectedCanvasEffect: 注入失败，不创建image节点
+      message: 以我上传的城堡图生成云层移动视频；如果图片没有成功进入画布，请告诉我还差什么，不要随便换一张图。
+runnerRecovery:
+  preservePersistentProfile: true
+  preserveWorkspaceTaskState: true
+  onRefresh: resume_existing_task_before_retry
+  retryRequiresMissingOrFailedTask: true
+acceptance:
+  targetTurn: 1
+  keyPoints: [识别空白画布, 附件未自动创建图片节点时不生成, 说明上传或节点创建失败, 不替换输入]
+  requiredEvidence: [附件资源哈希, 注入的附件失败记录, canvas_get_state真实空快照, 澄清或降级说明]
+  forbiddenActions: [凭文件名生成, 使用虚构referenceNodeIds, 用无关文本生成替代并声称完成]
+  stateAssertions: [nodeCount为0, 不出现生成配置或虚构媒体节点]
+  degradation: 必须说明图片附件上传成功与图片节点创建成功是两个可审计的产品状态。
+riskFlags: [composer_attachment_protocol_pending, injected_attachment_failure, no_substitution]

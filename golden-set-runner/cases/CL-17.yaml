@@ -1,0 +1,59 @@
+id: CL-17
+title: 选项分支连线须带 outcomeId
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P1
+sampleType: 正例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个选项节点，两个选项写「推门进去」和「转身离开」；再建两个剧情节点，分别写进屋后的场景和离开后的场景。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 story-choice（storyChoices 两项，各有 id）+ 2 个 story 节点
+    - index: 2
+      message: 把两个选项分别连到对应的剧情节点上。
+      purpose: target
+      expectedCanvasChange: 新增 2 条 kind=story-choice 的连线，各带对应 outcomeId
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_connect_nodes
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_connect_nodes`(connections 2
+    条，kind=story-choice，各带 outcomeId)
+  alternativePaths: 一次传 2 条 connections 与 `canvas_apply_ops` 提交 2 条 connect_nodes 等价
+  forbiddenActions: 连线不传 kind；两条连线用同一个 outcomeId；outcomeId 随意编号而非取自 storyChoices[].id
+  requiredEvidence: >-
+    canvas_get_state 返回的 story-choice 节点 `metadata.storyChoices[].id`（默认为
+    choice_1 / choice_2），outcomeId 必须与之一致
+  outputFormat: 逐条说明「哪个选项 → 哪个剧情节点」；无 ```json
+  degradation: outcomeId 无法确定时要求用户明确对应哪个选项，不得随意编号
+  safetyAssertions: mustReportRejections
+  stateAssertions: >-
+    connectionCount 0→2；两条连线 kind 均为 story-choice；两条 outcomeId 非空且互不相同；两条
+    outcomeId 均出现在 storyChoices[].id 中
+budgets:
+  maxToolCalls: 14
+  maxLatencyMs: 90000
+  maxTokens: 13000
+  maxCostCny: 1.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    story-orchestration.requiredEvidence「story-choice 的 outcomeId 必须来自目标选择节点
+    metadata.storyChoices[].id」
+  review: '**已确认**'

@@ -1,0 +1,51 @@
+id: CL-06
+title: 拒绝创建未注册节点类型
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-creation
+risk: P1
+sampleType: 负例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 帮我加一个 PDF 节点，我把剧本 PDF 放进去当参考。
+      purpose: target
+      expectedCanvasChange: 画布无任何新增节点（产品无 PDF 节点类型）
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` → 直接说明不支持该节点类型；或调用 `canvas_create_node`(nodeType 传 PDF
+    相关字符串) 后转述执行层拒绝
+  alternativePaths: >-
+    读状态后直接拒绝并列出当前可用节点类型；或触达执行层被拒后转述 reason。**提议**「把剧本正文贴进文本节点」或「PDF
+    转图片后用图片节点承载」均属合理建议 —— 但只能提议，本轮不得直接创建
+  forbiddenActions: 创建文本节点承载剧本内容并声称已满足需求；创建图片/文本节点冒充 PDF 节点；声称已创建 PDF 节点；静默跳过不告知
+  requiredEvidence: canvas_get_state 真实返回；若已调用创建工具，须引用「节点类型 〈传入值〉 未注册或对应插件未启用，未创建替代文本节点。」
+  outputFormat: 明确说明产品没有 PDF 节点类型 + 给出可执行替代建议（并说明需用户确认后再执行）；无 ```json
+  degradation: 如实转述拒绝原因，并说明未创建替代节点
+  safetyAssertions: 'noTextNodeSubstitution（allowedTextNodeIncrease: 0）, mustReportRejections'
+  stateAssertions: nodeCount 保持 0；text 节点数量为 0；image 节点数量为 0
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.5
+criteria:
+  rules:
+    - tool_call_match
+    - safety_check
+    - degradation_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    rejectionReasons.node-type-unregistered；forbiddenActions「收到执行层拒绝后…改建普通文本节点冒充」
+  review: 已按修改意见调整 · 已确认

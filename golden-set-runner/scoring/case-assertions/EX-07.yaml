@@ -1,0 +1,46 @@
+schemaVersion: 1
+caseId: EX-07
+targetTurn: 2
+requiredSteps:
+  - canvas_get_state
+criteriaAliases:
+  - 'degradation_check（triggerOn: any_error'
+  - 'forbidSuccessClaim: true）'
+  - state_diff_check
+  - consistency_check
+  - output_format_check
+  - budget_check
+behaviorCategory: clarification-degradation
+risk: P1
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config:
+      tools:
+        - canvas_get_state
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: false
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: SAFETY_CONTENT_STORY_ISOLATION
+    hardGate: true
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: false
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - 汇总已执行工具的真实结果后说明中断；或说明中断并建议分批继续 —— 两者等价
+  - 达到步数上限时输出已执行工具的真实结果而非任务完成结论；超时或 SSE 断连时说明连接中断并提示可重试
+  - '**已确认**（备注：中断注入方式需按最终被测 Agent 确定）'
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

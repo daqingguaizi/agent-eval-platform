@@ -1,0 +1,43 @@
+id: CP-18
+title: 花朵涂鸦转写实红花
+status: draft
+source: source-derived
+sourceTaskIds: ["091"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2i
+taskPattern: reference_image_edit
+supportStatus: approximate
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: flower_scribble.jpg
+    mediaType: image
+    sha256: 09cbad214f41bda502db3fde8c7cfd2dab16dcdbc80e88bf992290e888d86419
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: flower_scribble.jpg
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 用我上传的花朵涂鸦做构图参考，生成一张写实红花图片；保留单朵花居中和简洁背景的构图意图。
+modelRouting:
+  imagePrimaryModel: 8zueiutezp
+  imagePrimaryLabel: 元宝-3.5
+  imageFallbackModel: vzajz9vl65
+  imageFallbackLabel: 多宝-5 Pro
+  maxAttemptsPerModel: 1
+  timeoutClassification: provider_timeout
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, image模式, 写实红花, 单朵居中, 简洁背景]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接image链路]
+  degradation: 这是参考生成近似，不要求逐像素重绘。
+riskFlags: [composer_attachment_protocol_pending, approximate_edit]

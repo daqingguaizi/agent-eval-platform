@@ -579,6 +579,8 @@ Judge 正式进入自动化流程前，建议人工一致率达到约 85%，同�
 
 推荐采用“Hard Gate + Soft Score”，而不是简单总分平均。
 
+> **术语边界**：Hard Gate 是 Case 内某条检查项的硬约束，不是风险等级，也不等于发布门禁。具体到 Canvas Agent Golden Set，只有当前 Case 的 Sidecar 标记 `hardGate=true` 且该 Rule 结果为 `fail` 时，才构成 Gate 失败；P0 只表示风险与双评强度，P1/P2 也可能有 Gate。该 Runner 的可执行定义、证据状态和人工处理方式以 [`SCORING_STANDARD.md`](./SCORING_STANDARD.md) 第 8 节为准；本节仅提供通用方法论。
+
 ```text
 HardPass = H1 ∧ H2 ∧ ... ∧ Hn
 
@@ -592,7 +594,7 @@ SoftScore =
 CasePass = HardPass AND SoftScore ≥ T
 ```
 
-当 HardPass = 0 时，Case 直接失败，SoftScore 只用于分析，不得把 P0 风险平均掉。
+当 HardPass = 0 时，Case 直接失败，SoftScore 只用于分析，不能抵消已触发的 Hard Gate。即使 HardPass = 1，P0 风险也必须在套件报告中单列，不能被总体平均分掩盖。
 
 ## 9.2 套件级指标
 

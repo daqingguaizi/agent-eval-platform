@@ -1,32 +1,45 @@
-# Dependencies
+# Dependencies and builds
 node_modules/
-
-# Build outputs
 .next/
 dist/
 *.tsbuildinfo
+next-env.d.ts
 
-# Database
-prisma/*.db
-prisma/*.db-journal
-
-# Environment variables
+# Environment and local configuration
 .env
 .env.local
 .env.*.local
+!.env.example
 
-# IDE
+# Local evaluation runtime, target products, evidence and browser state
+runtime-targets/
+runtime-homes/
+third_party/
+golden-set-runner/runs/*
+!golden-set-runner/runs/demo-viewer/
+!golden-set-runner/runs/demo-viewer/**
+golden-set-runner/assessments/
+golden-set-runner/codex-home/
+golden-set-runner/runtime-bin/
+golden-set-runner/.pilot-*.log
+golden-set-runner/.viewer-server.log
+golden-set-runner/*.log
+**/playwright-profile/
+**/*browser-profile/
+**/IndexedDB/
+**/Local Storage/
+**/Session Storage/
+**/*.db
+**/*.db-journal
+**/*.jsonl
+
+# Database and local tooling
+prisma/*.db
+prisma/*.db-journal
+.playwright-cli/
+.workbuddy/
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
-
-# Generated
-next-env.d.ts
-
-# Playwright test artifacts
-.playwright-cli/
-
-# WorkBuddy project data
-.workbuddy/

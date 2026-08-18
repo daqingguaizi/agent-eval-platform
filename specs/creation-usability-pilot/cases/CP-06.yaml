@@ -1,0 +1,32 @@
+id: CP-06
+title: 夜城霓虹推镜短视频
+status: draft
+source: source-derived
+sourceTaskIds: ["031"]
+tier: vanilla
+taskDomain: content_creation
+modality: t2v
+taskPattern: text_to_video
+supportStatus: direct
+coverageTags: [artifact_reply]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 建一条短片分镜：夜晚城市街口，霓虹招牌倒映在湿地面，镜头缓慢向前推进，没有人物特写或可读招牌文字。
+    - index: 2
+      purpose: target
+      message: 用这条分镜生成四秒夜城推镜视频，保持湿地倒影、霓虹氛围和缓慢推进的镜头语言。
+modelRouting:
+  videoProvider: qa3zsyxzc8
+  videoProviderLabel: 梦宝-2.0
+  durationSeconds: 4
+acceptance:
+  targetTurn: 2
+  keyPoints: [video模式, 夜城, 湿地霓虹倒影, 缓慢推镜, 无可读招牌文字]
+  requiredEvidence: [真实分镜节点ID, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [video链路引用前置分镜]
+  degradation: 不得虚构视频完成或播放地址。
+riskFlags: [artifact_semantics, provider_variability]

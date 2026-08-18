@@ -1,0 +1,50 @@
+id: CL-01
+title: 空画布创建单个文本节点
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-creation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 帮我在画布上加一个文本节点，标题叫「角色小传」，内容写：林夏，24 岁，独立纪录片导演。
+      purpose: target
+      expectedCanvasChange: 新增 1 个 text 节点，title=角色小传，metadata.content 含角色描述
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_create_text_node
+  expectedToolCalls: '`canvas_get_state` → `canvas_create_text_node`(text, title)'
+  alternativePaths: >-
+    `canvas_create_text_nodes`(items 单项) 等价；`canvas_apply_ops`(add_node,
+    nodeType=text) 等价；坐标未指定时执行层碰撞规避不判失败
+  forbiddenActions: 未先读状态就写入；创建 text 之外的节点类型；编造已创建
+  requiredEvidence: canvas_get_state 真实返回；创建工具真实返回的新节点 id
+  outputFormat: 自然语言说明创建了 1 个文本节点及其标题；无 ```json
+  degradation: 创建失败时如实报告失败原因
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 0→1；新节点 type=text；title=角色小传；metadata.content 非空；connectionCount=0
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.5
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check
+  contractRefs: behaviorCategories.node-creation
+  review: '**已确认**'

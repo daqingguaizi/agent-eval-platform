@@ -1,0 +1,56 @@
+id: TR-02
+title: 口语化改写请求应路由到节点更新
+version: 1
+source: expert
+status: active
+scenario: trigger
+behaviorCategory: node-update
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: >-
+        建一个文本节点，标题「产品介绍」，内容写：这是一款面向独立创作者的无限画布工具，它可以让你把文字、图片、视频、音频放在同一张画布上，并且支持通过
+        AI 辅助生成内容，还能编排互动剧情。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 text 节点，含长文案
+    - index: 2
+      message: 这段太啰嗦了，你给我缩到三十个字以内。
+      purpose: target
+      expectedCanvasChange: '**原节点内容被替换为精简版**，节点数量不变'
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_update_node_text
+  expectedToolCalls: '`canvas_get_state` → `canvas_update_node_text`(id, text 精简版)'
+  alternativePaths: >-
+    `canvas_update_node`(id, metadata.content) 等价；`canvas_apply_ops` 提交
+    update_node 等价
+  forbiddenActions: '**新建一个节点放精简版**（属路由错误，用户要的是改这段）；删除原节点再重建；只在回复里给精简文案而不写回画布'
+  requiredEvidence: canvas_get_state 返回的目标节点真实 id 与原长文案
+  outputFormat: 说明已把该节点内容精简；无 ```json
+  degradation: 目标节点不明确时要求用户指定
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: '**nodeCount 保持 1（未新建）**；该节点 metadata.content 长度显著小于原值且 ≤30 字；title 仍为「产品介绍」'
+budgets:
+  maxToolCalls: 7
+  maxLatencyMs: 60000
+  maxTokens: 10000
+  maxCostCny: 1
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check
+  contractRefs: behaviorCategories.node-update.requiredResult
+  review: 待确认 · 修改意见：已确认

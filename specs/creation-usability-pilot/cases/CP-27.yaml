@@ -1,0 +1,26 @@
+id: CP-27
+title: 空白画布上的缺失主视觉澄清
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: vanilla
+taskDomain: route_recovery
+modality: canvas_only
+taskPattern: missing_reference_clarification
+supportStatus: direct
+coverageTags: [trigger_route, exception_isolation]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 用画布里那张主视觉做一段两秒宣传片，人物和构图都别变。
+acceptance:
+  targetTurn: 1
+  keyPoints: [读取空白画布, 明确没有主视觉, 提出具体素材接入或选择问题, 不执行生成]
+  requiredEvidence: [canvas_get_state真实空快照, 自然语言澄清问题]
+  forbiddenActions: [调用生成工具, 编造参考节点ID, 声称已生成视频]
+  stateAssertions: [nodeCount为0, connectionCount为0]
+  degradation: 澄清须指出缺少的是哪一类输入素材。
+riskFlags: [missing_reference, no_guessing]

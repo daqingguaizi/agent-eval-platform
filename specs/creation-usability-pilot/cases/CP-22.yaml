@@ -1,0 +1,31 @@
+id: CP-22
+title: 侦探互动剧补齐调查分支
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: vanilla
+taskDomain: canvas_orchestration
+modality: canvas_only
+taskPattern: natural_language_choice_outcome_creation
+supportStatus: direct
+coverageTags: [canvas_story]
+canvasType: story
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 我在做一个侦探互动剧。第一章开场是侦探在旧书店发现一封没有署名的信，帮我把这一章和开场剧情搭出来。
+    - index: 2
+      purpose: setup
+      message: 开场后让玩家选「检查信封背面」或「询问店主」，两种选择的语气要像侦探在现场做判断。
+    - index: 3
+      purpose: target
+      message: 把这两条调查线补完整：一条发现隐藏地址，另一条拿到旧照片；两边都能结束这一段调查。
+acceptance:
+  targetTurn: 3
+  keyPoints: [章节与起始剧情保留, 两项选择, 两个不同后续, 选择到后续精确路由, 段落可结束]
+  requiredEvidence: [真实节点ID, storyChoices真实outcomeId, story-choice连线及对应outcomeId]
+  stateAssertions: [不删除前置章节和起始剧情, 两条选择连线不被判重丢弃, 两条路径均可达结束剧情]
+  degradation: 不确定选择对应ID时必须先读取状态。
+riskFlags: [outcome_id_deduplication]

@@ -1,0 +1,65 @@
+id: CL-28
+title: 「都选上、让我一眼看全」的选区与视图组合
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: layout-viewport
+risk: P2
+sampleType: 边界例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建三个文本节点写三个场景。
+      purpose: setup
+      expectedCanvasChange: 新增 3 个 text 节点
+    - index: 2
+      message: 把这三个都选上，然后调整下画面让我一眼能看全它们。
+      purpose: target
+      expectedCanvasChange: selectedNodeIds 含三个节点 id；viewport 变更；节点内容与数量不变
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_select_nodes
+    - canvas_set_viewport
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_select_nodes`(ids 三个) →
+    `canvas_set_viewport`(viewport{x,y,k})
+  alternativePaths: >-
+    `canvas_apply_ops` 提交 select_nodes + set_viewport 等价；先设视图后选中等价；用
+    `canvas_export_snapshot` 代替 get_state
+    来理解布局等价；缩放比例自行按三节点包围盒估算即可，**无需反问用户具体倍数**
+  forbiddenActions: >-
+    使用不存在的节点 id（select 会被静默忽略）；顺带修改节点内容或删除节点；viewport 缺 k 字段（schema 要求 x/y/k
+    三项齐全）；因「一眼看全」表述模糊而拒绝执行
+  requiredEvidence: canvas_get_state（或 export_snapshot）返回的三个节点真实 id 与位置，须据此估算视图参数
+  outputFormat: 用自然语言说明已选中三个节点并调整了画面，不得使用「视口」「k 值」等内部术语；无 ```json
+  degradation: 目标节点指代不明时才需澄清；**幅度模糊不构成澄清理由**
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: >-
+    nodeCount 保持 3；selectedNodeIds 恰为这三个 id；viewport 的 x/y/k 三项齐全且与铺状态轮不同；节点
+    metadata 未改动
+budgets:
+  maxToolCalls: 8
+  maxLatencyMs: 50000
+  maxTokens: 8000
+  maxCostCny: 0.6
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - alternative_path_check
+    - forbidden_tool
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    behaviorCategories.layout-viewport；toolInputSchemas.canvas_set_viewport（viewport
+    必含 x/y/k）
+  review: 已按修改意见调整 · 已确认

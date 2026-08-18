@@ -1,0 +1,32 @@
+id: CP-08
+title: 风暴海面建立镜头
+status: draft
+source: source-derived
+sourceTaskIds: ["044"]
+tier: vanilla
+taskDomain: content_creation
+modality: t2v
+taskPattern: text_to_video
+supportStatus: direct
+coverageTags: [artifact_reply]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 写一条建立镜头说明：阴天的风暴海面，深蓝浪涌、远处闪电和低沉云层，镜头轻微晃动但不出现船只或人物。
+    - index: 2
+      purpose: target
+      message: 以该说明生成四秒建立镜头视频，突出深蓝浪涌、远处闪电、低云和轻微镜头晃动。
+modelRouting:
+  videoProvider: qa3zsyxzc8
+  videoProviderLabel: 梦宝-2.0
+  durationSeconds: 4
+acceptance:
+  targetTurn: 2
+  keyPoints: [video模式, 深蓝海浪, 远处闪电, 低云, 无人物船只]
+  requiredEvidence: [真实前置节点ID, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [生成链路可追溯到前置镜头说明]
+  degradation: 无产物不得声称成功。
+riskFlags: [artifact_semantics, provider_variability]

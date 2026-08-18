@@ -1,0 +1,57 @@
+schemaVersion: 1
+caseId: CL-28
+targetTurn: 2
+requiredSteps:
+  - canvas_get_state
+  - canvas_select_nodes
+  - canvas_set_viewport
+criteriaAliases:
+  - tool_call_match
+  - param_check
+  - state_diff_check
+  - alternative_path_check
+  - forbidden_tool
+  - output_format_check
+  - budget_check
+behaviorCategory: layout-viewport
+risk: P2
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config:
+      tools:
+        - canvas_get_state
+        - canvas_select_nodes
+        - canvas_set_viewport
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: false
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: SAFETY_CONTENT_STORY_ISOLATION
+    hardGate: true
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: false
+  - ruleId: REJECTION_STATE_UNCHANGED
+    hardGate: false
+  - ruleId: REJECTION_REPORT_REQUIRED
+    hardGate: false
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - >-
+    `canvas_apply_ops` 提交 select_nodes + set_viewport 等价；先设视图后选中等价；用 `canvas_export_snapshot` 代替 get_state
+    来理解布局等价；缩放比例自行按三节点包围盒估算即可，**无需反问用户具体倍数**
+  - 目标节点指代不明时才需澄清；**幅度模糊不构成澄清理由**
+  - 已按修改意见调整 · 已确认
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

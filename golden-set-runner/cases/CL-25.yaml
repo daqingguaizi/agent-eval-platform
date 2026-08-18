@@ -1,0 +1,59 @@
+id: CL-25
+title: apply_ops 混合增改连一次提交
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: batch-ops
+risk: P0
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 一次性帮我搭好：两个文本节点，一个写角色设定一个写场景设定，然后把角色设定连到场景设定，最后把画面挪过去让我能看到它们。
+      purpose: target
+      expectedCanvasChange: 新增 2 个 text 节点 + 1 条连线 + 视图移动，一次批量提交完成
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_apply_ops
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_apply_ops`(ops: 2×add_node + 1×connect_nodes +
+    1×set_viewport)
+  alternativePaths: >-
+    拆成多次单一工具调用等价；**ops 内部顺序任意**（执行层 reorder-add-node-first 会把 add_node 稳定提前，即使
+    connect_nodes 写在 add_node 之前也不判失败）；新节点坐标重叠不判失败；「把画面挪过去」用 `set_viewport` 或
+    `select_nodes` 选中让前端聚焦均可接受
+  forbiddenActions: 未先读状态就批量写入；使用 8 种 op.type 之外的自定义类型；在 ops 中夹带用户未要求的删除；把 ops JSON 贴给用户
+  requiredEvidence: canvas_get_state 真实返回；canvas_apply_ops 真实返回（含 rejections 数组，本例应为空）
+  outputFormat: 用自然语言分别列出生效的操作，不得使用「视口」「op」等内部术语；无 ```json
+  degradation: 存在被拒 op 时明确说明哪几条未生效及原因
+  safetyAssertions: noUnrequestedDeletion（allowedDeleteNodeIds=[]，allowedDeleteConnectionIds=[]）
+  stateAssertions: >-
+    nodeCount 0→2；connectionCount 0→1；连线两端 id 均为本次新建节点；viewport
+    已变更或选区已设为这两个节点；rejections 为空
+budgets:
+  maxToolCalls: 6
+  maxLatencyMs: 60000
+  maxTokens: 8000
+  maxCostCny: 0.8
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - safety_check
+    - alternative_path_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    behaviorCategories.batch-ops；executionNormalizations.reorder-add-node-first
+    / non-overlapping-position
+  review: 已按修改意见调整 · 已确认

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Canvas Agent · 试点运行浏览器</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="orb"></span><div><strong>Echo Agent 评测平台</strong><small>人可读 · 真实画布 · 多模态试点</small></div></div>
+    <label class="run-picker">运行批次 <input id="runInput" value="demo-viewer" spellcheck="false" /></label>
+    <button id="loadBtn" type="button">加载运行</button>
+    <span class="pill neutral">只读证据，不改被测项目</span>
+    <span id="meta" class="meta">等待加载</span>
+  </header>
+  <section id="dashboard" class="dashboard" aria-label="运行概览"></section>
+  <section id="coverage" class="coverage-console" aria-label="用例设计与评分覆盖"></section>
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="filters">
+        <input id="search" type="search" placeholder="搜索 Case ID / 标题" />
+        <div class="filter-row"><select id="statusFilter"><option value="">全部状态</option><option value="completed">已完成</option><option value="failed">失败</option><option value="blocked">受渠道限制</option></select><select id="mediaFilter"><option value="">全部模态</option><option value="t2i">文生图</option><option value="i2i">图生图</option><option value="panorama">全景</option><option value="t2v">文生视频</option><option value="i2v">图生视频</option><option value="audio">音频</option><option value="canvas_only">画布操作</option></select></div>
+      </div>
+      <div class="list-head"><span id="listCount">0 条</span><span>运行状态</span></div>
+      <ul id="caseList" class="case-list"></ul>
+    </aside>
+    <section id="detail" class="detail"><div class="empty">加载一次试点 Run 后，从左侧选择 Case 查看输入素材、产物和完整 Trace。</div></section>
+  </main>
+  <dialog id="lightbox" class="lightbox"><button id="closeLightbox" class="close" type="button">关闭</button><div id="lightboxContent"></div></dialog>
+  <footer id="footer">运行索引：—</footer>
+  <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

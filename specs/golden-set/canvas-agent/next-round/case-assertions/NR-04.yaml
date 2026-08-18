@@ -1,0 +1,19 @@
+schemaVersion: 1
+caseId: NR-04
+targetTurn: 2
+requiredSteps: [canvas_get_state]
+behaviorCategory: clarification-degradation
+risk: P1
+ruleBindings:
+  - {ruleId: TRACE_TARGET_TURN, hardGate: true}
+  - {ruleId: TRACE_FINAL_STATE, hardGate: true}
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config: {tools: [canvas_get_state]}
+  - {ruleId: STATE_NO_UNREQUESTED_DELETE, hardGate: true}
+  - {ruleId: OUTPUT_NO_JSON_OPS, hardGate: true}
+  - {ruleId: BUDGET_OBSERVE}
+rubricIds: [RUBRIC_EVIDENCE_FAITHFULNESS, RUBRIC_TASK_RESOLUTION, RUBRIC_CLARITY_ACTIONABILITY]
+humanFocus: [是否把预设确认当作真实确认, 是否明确请求对象]
+budgetPolicy: {maxTokens: observe_only, maxToolCalls: warning, maxLatencyMs: warning, maxCostCny: observe_only}
+sourceNotes: [draft only, 不进入当前 Runner]

@@ -1,0 +1,21 @@
+---
+title: TODO
+description: 当前项目后续值得处理的事项
+---
+
+# TODO
+
+本文档用来记录当前项目后续比较值得处理的事项。
+
+- Golden Set 评分认证后续（`agent-eval-platform/golden-set-runner/`）：已冻结后继 Agent-quality 金标 `agent-quality-gold-v1`（来源 `baseline-v1-agent-quality-r1`），覆盖既有 50 条 Trace，结果为 41 pass / 9 fail / 0 needs_human_review。CL-12 已正式裁决为 pass、三个适用 Rubric 均为 4；CL-25 的拆分等价路径和 OQ-08 的完成声明语义使用隔离 Binding，既有 A/B 结论已迁入；8 条 P1/P2 待人工项按单人评测策略以已有 A 评和 Trace 证据关闭。未改写 `baseline-v1`、未重跑、未运行 Judge、未改动画布 Agent 或工作台实现。该金标须披露 `partial` 证据限制、生成类无可读产物不进入创意 Judge 校准，以及 OQ-08 Gate 语义变更不等同于完整标准认证。下一步为实际 Judge 校准（目标一致率约 85%、P0 漏判为 0）、Agent 修复、新 Run 回归、P0×5/P1×3 稳定性和独立 Selection/Test 验收；`maxTokens` 继续仅观察。Review 服务还需在后续实现中拦截已证实 Hard Gate fail 的直接 pass 提交。
+
+- 跑测的模型层依赖本机网关：用 DeepSeek 驱动 codex 必须先起 `responses-bridge.ts`（codex 0.130+ 移除了 `wire_api = "chat"`）。后续若要换成官方 codex 渠道或腾讯网关，可以去掉这一层，但要重新评估成本（按credits 计费，50 条多轮会烧额度）与无人值守跑测的可行性。
+- 本地 Agent 接入后续：按[本地 Agent 接入规划](/docs/progress/local-agent-integration-plan)把 Claude Code CLI Adapter 升级为 Claude Agent SDK Adapter，并完善工具队列体验。
+- WorkRally 线上可用：`/api/workrally/*` 依赖服务端 `workrally` CLI，主站容器未装、线上暂不可用；待评估「主站容器装公共 CLI」或「复用 Hermes agent 机器上的 CLI 生成并回填画布」两种方案。
+- CI/CD 自动部署：目前部署靠手动（上传代码 → 服务器打镜像 → 重启容器），后续搭 GitHub Actions 流水线，push 后自动构建镜像并部署到服务器；涉及数据库 migration 的步骤保留手动确认，避免自动迁移损坏数据。
+- 数据存储后续阶段（见 RFC-0002）：阶段二大文件上腾讯云 COS（前端直传）；阶段三画布/素材/生成记录云端化 + 多设备同步；远期按用户维护 Agent memory。
+- 积分预估展示与服务端报价对齐（见[积分与成本结算 Spec](/docs/backend/credit-billing-spec)）：生成按钮上的"预计 N 积分"目前由 `web/src/lib/credit-cost.ts` 的 `requestCreditCost` 在前端计算（`web/src/constant/credits.tsx` 仅保留兼容性导出），尚未调用 `/api/generations/quote`。前端现已包含 Seedream 独立档位和 Seedance 按时长取整逻辑，但它与服务端 `web/src/lib/server/billing/pricing.ts` 仍是两套需要手工同步的定价来源；新增模型、调整 `ModelTariff`/markup、尺寸或时长规则时仍可能出现展示预估与实际冻结扣费不一致。后续应以服务端 quote 为唯一权威报价，前端对参数变化做节流、防抖和结果缓存；本地公式最多作为接口加载失败时明确标注的临时预估，并把这条单一报价源要求补进 Spec 第 10 节实现检查清单。
+- 互动剧 Agent 全链路自动创作（见[互动剧 Agent 创作 Spec](/docs/backend/interactive-story-agent-authoring-spec)）：当前只落地了[编排画布 Agent 协议 Spec](/docs/backend/story-canvas-agent-protocol-spec) V1（Agent 能识别编排画布、创建/更新运行态节点、打显式连线），Spec 里想法→章节拓扑→资产包子画布→分镜包子画布→逐镜视频生产→成片回填的完整流水线仍未实现，依赖 `create_sub_project` 子画布机制、资产分类/资产组 token 体系（`story-asset-materials.ts` 目前零接入）、V2 20 字段分镜 JSON 契约校验等尚不存在的基础设施，需要单独评审后再启动。
+- EchoCanvas Foundations Spec 后续：Phase 1（Agent 任务状态统一）、Phase 2（画布资产与引用体验）和独立交付的 Phase 3 [Canvas Prompt Sources Parity Spec](/docs/backend/canvas-prompt-sources-parity-spec) 均已完成验收并关闭。Prompt Sources 后续新增来源或上游更新按独立维护项处理，继续遵守固定上游 commit、直接迁移 / Adapter / EchoDrama overlay 和共享 catalog/normalizer 规则，不重新打开已关闭 Spec。以下两项是本轮明确未解决、需要单独排期的架构级遗留，close 不代表已解决：
+  - Agent 任务状态未真正统一为运行时状态源：`CanvasAgentTask`/`AGENT_TASK_STATUS_TEXT` 目前只统一了文案，Echo 实际状态源是本地 `isRunning`+`runningActivity`，CodeX/Hermes 是 `useCanvasAgentStore` 的 `waiting/activity/pendingTool`，两套并行、各自维护，不是同一个状态源。
+  - `metadata.assetReferences`（素材引用/chip）目前只覆盖 Text/Image/Video/Audio 节点，未接入 Config/Story/Game 面板；这三类节点的"素材绑定"（Story 视频绑定、Game 素材槽）和 `assetReferences`（生成上下文引用）是两套不同语义的机制，尚未有文档明确分层规则，也没有统一 UI 展示。

@@ -1,0 +1,54 @@
+id: CL-23
+title: 引用已有素材节点作参考生成视频
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: generation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个文本节点写视频的分镜说明：镜头从地面缓缓上摇到天台边缘。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 text 节点
+    - index: 2
+      message: 用刚才那个分镜说明作为参考，生成一段视频。
+      purpose: target
+      expectedCanvasChange: 新增 video 模式生成流程，参考连线指向铺状态轮的文本节点，并触发生成
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_generate_video`(prompt,
+    referenceNodeIds=[文本节点真实 id])
+  alternativePaths: >-
+    `canvas_create_generation_flow`(mode=video, referenceNodeIds) +
+    `canvas_run_generation` 等价
+  forbiddenActions: 使用不存在的上游参考节点 id；不建参考连线；mode 选错；编造生成产物
+  requiredEvidence: canvas_get_state 返回的文本节点真实 id，referenceNodeIds 必须与之一致
+  outputFormat: 说明引用了哪个节点作参考、生成模式为视频；无 ```json
+  degradation: 生成失败时如实报告
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: 存在 mode=video 的生成配置节点；存在指向原文本节点的参考连线；原文本节点内容未被改动
+budgets:
+  maxToolCalls: 13
+  maxLatencyMs: 150000
+  maxTokens: 10000
+  maxCostCny: 2.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check ＋ LLM Judge：创意相关性
+  contractRefs: generation.forbiddenActions「使用不存在的上游参考节点 id 建立连线」
+  review: '**已确认**'

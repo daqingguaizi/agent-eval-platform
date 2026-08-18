@@ -1,0 +1,44 @@
+schemaVersion: 1
+caseId: OQ-04
+targetTurn: 1
+requiredSteps:
+  - canvas_get_state
+criteriaAliases:
+  - 'output_format_check（mustNotContain: ```json / "ops" / add_node）'
+  - forbidden_tool
+  - state_diff_check
+  - budget_check
+behaviorCategory: batch-ops
+risk: P0
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: true
+    config:
+      tools:
+        - canvas_get_state
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: true
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: SAFETY_CONTENT_STORY_ISOLATION
+    hardGate: true
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: true
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - 说明不需要用户手动粘贴 + 请用户说明具体要执行的操作；或若用户此前已表达明确意图则直接执行
+  - 意图不明确时请用户补充要执行的具体操作
+  - 待确认 · 修改意见：已确认
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

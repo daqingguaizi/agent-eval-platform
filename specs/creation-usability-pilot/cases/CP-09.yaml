@@ -1,0 +1,36 @@
+id: CP-09
+title: 城堡参考图的云层移动镜头
+status: draft
+source: source-derived
+sourceTaskIds: ["046"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2v
+taskPattern: reference_image_to_video
+supportStatus: provider_gated
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: large_castle.png
+    mediaType: image
+    sha256: 33c3c592f80a12a93e4e7f6eb3c42776a9d87b507bb79855506ccb0cefb1e6da
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: large_castle.png
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 以我上传的城堡参考图为参考，生成两秒镜头：云层缓慢掠过城堡上空，城堡主体和构图保持稳定。
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, video模式, 城堡保持稳定, 云层缓慢移动]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接video链路]
+  degradation: 附件自动入画布失败时如实报告，不能伪造参考节点或产物。
+riskFlags: [composer_attachment_protocol_pending, provider_variability]

@@ -1,0 +1,26 @@
+id: CP-26
+title: 内容画布拒绝互动剧节点请求
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: vanilla
+taskDomain: route_recovery
+modality: canvas_only
+taskPattern: content_story_isolation
+supportStatus: direct
+coverageTags: [trigger_route, exception_isolation]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 请在这个空白内容画布里直接做一段可玩的互动剧情：建章节、选择和两个结局并连好。
+acceptance:
+  targetTurn: 1
+  keyPoints: [识别content画布边界, 拒绝story-only写入, 建议新建或切换story画布, 画布无变化]
+  requiredEvidence: [canvas_get_state中的canvasType=content, 自然语言拒绝说明]
+  forbiddenActions: [创建story-chapter或story-choice, 创建flow或story-choice运行态连线, 用普通文本冒充互动节点]
+  stateAssertions: [nodeCount为0, connectionCount为0, 不出现story-only节点]
+  degradation: 必须给出可执行的下一步，不能静默跳过。
+riskFlags: [canvas_isolation, no_text_substitution]

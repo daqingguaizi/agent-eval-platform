@@ -1,0 +1,36 @@
+id: CP-17
+title: 山涧参考图添加独木桥
+status: draft
+source: source-derived
+sourceTaskIds: ["065"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2i
+taskPattern: reference_image_addition
+supportStatus: approximate
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: mountain_stream.png
+    mediaType: image
+    sha256: 044420fcb14b58215fd8ee10b790ce9825a5c81f0fc9392689452d371caaf93a
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: mountain_stream.png
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 参考我上传的山涧图，在溪流上加一座简洁的独木桥，山体、水流方向和自然光线都保持不变。
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, image模式, 独木桥, 水流山体自然光线保留]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接image链路]
+  degradation: 不能虚构精确局部编辑成功。
+riskFlags: [composer_attachment_protocol_pending, approximate_edit]

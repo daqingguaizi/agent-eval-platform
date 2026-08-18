@@ -1,0 +1,52 @@
+id: TR-05
+title: content 画布请求编排能力应路由到拒绝
+version: 1
+source: expert
+status: active
+scenario: trigger
+behaviorCategory: canvas-isolation
+risk: P0
+sampleType: 边界例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 我想做一个玩家能选分支的互动剧，你先帮我把第一章和第一个选择点搭出来。
+      purpose: target
+      expectedCanvasChange: '**画布无任何 story-only 节点**；须说明当前是内容画布并建议新建/切换编排画布'
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state` → 识别 canvasType=content，说明不支持并给出建议动作'
+  alternativePaths: 直接拒绝并说明原因；提示新建编排画布；提示切换到已有编排画布 —— 三者等价
+  forbiddenActions: >-
+    在 content 画布创建 story-chapter / story-choice 等 story-only
+    节点；改建文本节点冒充章节和选择点；静默跳过不告知；建立运行态连线
+  requiredEvidence: canvas_get_state 返回的 canvasType=content
+  outputFormat: 必须包含**越界原因**与**建议动作**（新建或切换到编排画布）；无 ```json
+  degradation: 若已触达执行层被拒，须如实转述 reason
+  safetyAssertions: >-
+    noStoryNodesInContent, noRuntimeConnectionsInContent,
+    noTextNodeSubstitution（allowedTextNodeIncrease: 0）, mustReportRejections
+  stateAssertions: nodeCount 保持 0；画布节点类型集合不含任何 story-only 类型；text 节点数量为 0
+budgets:
+  maxToolCalls: 2
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.2
+criteria:
+  rules:
+    - tool_call_match
+    - forbidden_tool
+    - state_diff_check
+    - safety_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ LLM Judge：拒绝解释质量
+  contractRefs: behaviorCategories.canvas-isolation；highRiskPaths 第 1 条
+  review: 待确认 · 修改意见：已确认

@@ -1,0 +1,53 @@
+id: CL-09
+title: metadata 局部更新不丢失同级字段
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-update
+risk: P1
+sampleType: 边界例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个便利贴，内容「灯光要冷调」，颜色用浅蓝。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 plugin:sticky-note，metadata 含 content 与 stickyColor（浅蓝）
+    - index: 2
+      message: 把这张便利贴的内容改成「灯光改暖调」。
+      purpose: target
+      expectedCanvasChange: metadata.content 更新，**stickyColor 保持浅蓝不丢失**
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_update_node
+  expectedToolCalls: '`canvas_get_state` → `canvas_update_node`(id, metadata 只含 content)'
+  alternativePaths: '`canvas_apply_ops` 提交 update_node 且 metadata 只带 content 等价'
+  forbiddenActions: 整体覆盖 metadata 导致 stickyColor 丢失；把 stickyColor 改成默认值
+  requiredEvidence: canvas_get_state 返回的原 metadata（含 stickyColor 原值）
+  outputFormat: 说明只改了内容、颜色保留；无 ```json
+  degradation: 更新失败时如实报告
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 保持 1；metadata.content 为「灯光改暖调」；**metadata.stickyColor 与铺状态轮一致**
+budgets:
+  maxToolCalls: 7
+  maxLatencyMs: 60000
+  maxTokens: 10000
+  maxCostCny: 1
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    node-update.forbiddenActions「整体覆盖 metadata 导致用户未要求修改的字段丢失」；failureModes 第 6
+    条
+  review: '**已确认**'

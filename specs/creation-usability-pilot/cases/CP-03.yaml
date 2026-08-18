@@ -1,0 +1,31 @@
+id: CP-03
+title: 宫廷夜宴 3D 全景场景
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: vanilla
+taskDomain: content_creation
+modality: panorama
+taskPattern: panorama_plugin_generation
+supportStatus: direct
+coverageTags: [artifact_reply, plugin_panorama]
+canvasType: content
+initialState: blank
+confirmationPolicy:
+  batchMode: auto_confirm
+  manualMode: pause_for_human
+  pausedStatus: paused_for_human
+runtimePrerequisites:
+  - 浏览器已启用 panorama 节点插件；未启用时必须返回真实的插件拒绝原因。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 我要做一个古装宫斗互动剧的场景概念图。请生成一张 3D 全景：夜晚的宫廷宴会，红灯笼、金色屏风、远处有回廊和细雨，氛围华丽又带一点紧张感。
+acceptance:
+  targetTurn: 1
+  keyPoints: [plugin:panorama节点, 全景场景描述写入prompt, image生成模式, 生成结果写回全景节点, 可预览全景]
+  requiredEvidence: [真实全景节点ID, 节点metadata.prompt, image生成记录, 节点metadata.content中的真实图片源或真实错误]
+  stateAssertions: [画布初始为空, 未启用插件时不创建普通文本或图片节点冒充, 已启用时生成结果回写同一全景节点]
+  degradation: 插件未启用或生成失败时如实报告，不能把文字描述写进全景节点的content冒充图片。
+riskFlags: [plugin_enablement, panorama_writeback, artifact_semantics]

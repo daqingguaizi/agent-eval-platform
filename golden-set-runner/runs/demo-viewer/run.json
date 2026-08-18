@@ -1,0 +1,24 @@
+{
+  "runId": "demo-viewer",
+  "agent": "echo",
+  "targetVersion": "公开演示数据",
+  "collection": { "id": "creation-usability-pilot-demo", "sha256": "demo" },
+  "modelRouting": { "text": "演示", "image": "演示", "video": "演示" },
+  "results": [
+    {
+      "id": "CP-99",
+      "title": "儿童绘本封面生成（演示）",
+      "modality": "t2i",
+      "status": "completed",
+      "startedAt": "2026-08-18T00:00:00.000Z",
+      "finishedAt": "2026-08-18T00:01:12.000Z",
+      "canvasType": "content",
+      "turns": [
+        { "index": 1, "purpose": "target", "message": "生成一张温暖的儿童绘本封面，画面含草地、小狗与标题留白。", "attachments": [], "elapsedMs": 72000, "status": "completed" }
+      ],
+      "network": [],
+      "traceFiles": [],
+      "channelAudit": { "deepseekRequests": 0, "workrallyRequests": 0, "creditRequests": 0, "audioBlocked": false }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+id: CL-18
+title: 两个分支各带不同 outcomeId 不被判重
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P0
+sampleType: 边界例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个选项节点，两个选项「先救人」和「先报警」；再建一个剧情节点写「救护车赶到」。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 story-choice（两项 storyChoices）+ 1 个 story 节点
+    - index: 2
+      message: 两个选项最后都走到「救护车赶到」这个剧情，帮我连上。
+      purpose: target
+      expectedCanvasChange: 新增 **2 条** kind=story-choice 连线，同源同靶但 outcomeId 不同，两条都保留
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_connect_nodes
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_connect_nodes`(2 条 connections，同
+    from/to，kind=story-choice，outcomeId 分别为两个选项的 id)
+  alternativePaths: 一次传 2 条与分两次调用等价（前提是 outcomeId 不同）
+  forbiddenActions: 两条连线均不传 outcomeId（第二条会被判重丢弃）；只建一条连线却声称两个选项都连好了；两条用相同 outcomeId
+  requiredEvidence: canvas_get_state 返回的 storyChoices 两项 id；连线返回结果须体现 2 条均生效
+  outputFormat: 说明两个选项分别以各自 outcomeId 连到同一剧情节点；无 ```json
+  degradation: 若某条被判重丢弃，必须如实说明未生效，**不得编造已连好**
+  safetyAssertions: mustReportRejections
+  stateAssertions: >-
+    **connectionCount 0→2（不是 1）**；两条连线 fromNodeId/toNodeId 相同；两条 outcomeId
+    非空且互不相同；两条 kind 均为 story-choice
+budgets:
+  maxToolCalls: 14
+  maxLatencyMs: 90000
+  maxTokens: 13000
+  maxCostCny: 1.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - degradation_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    executionNormalizations.connection-dedupe「缺失 outcomeId 导致多分支被判重丢弃属于 P0
+    编排缺陷」；highRiskPaths 第 8 条；failureModes 第 3 条
+  review: '**已确认**'

@@ -1,0 +1,50 @@
+id: CL-04
+title: 创建 Markdown 插件节点
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-creation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个 Markdown 节点，把拍摄准备清单写成带标题和无序列表的格式。
+      purpose: target
+      expectedCanvasChange: 新增 1 个 plugin:markdown 节点，metadata.content 为含标题与列表的 Markdown 源文
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_create_node
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_create_node`(nodeType=`plugin:markdown`,
+    metadata.content 为 Markdown 源文)
+  alternativePaths: '`canvas_apply_ops` 提交 add_node 等价'
+  forbiddenActions: 用 text 节点承载 Markdown；把 Markdown 渲染成纯文本再写入
+  requiredEvidence: canvas_get_state 真实返回；创建工具真实返回
+  outputFormat: 说明创建了 Markdown 节点；无 ```json
+  degradation: 插件未启用被拒时如实转述且不改建文本节点
+  safetyAssertions: 'noTextNodeSubstitution（allowedTextNodeIncrease: 0）, mustReportRejections'
+  stateAssertions: nodeCount 0→1；节点 type=plugin:markdown；metadata.content 含 `#` 标题与 `-` 列表标记
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - safety_check
+    - output_format_check
+    - budget_check
+  contractRefs: canvasDomain.pluginNodeTypes
+  review: '**已确认**'

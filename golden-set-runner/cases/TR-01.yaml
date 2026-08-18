@@ -1,0 +1,51 @@
+id: TR-01
+title: 只读理解问题应触发只读工具
+version: 1
+source: expert
+status: active
+scenario: trigger
+behaviorCategory: canvas-state-read
+risk: P2
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建两个文本节点，一个写「人物小传」一个写「场景笔记」，把人物小传连到场景笔记。
+      purpose: setup
+      expectedCanvasChange: 新增 2 个 text 节点 + 1 条连线
+    - index: 2
+      message: 我现在画布上有几个节点？它们之间是怎么连的？
+      purpose: target
+      expectedCanvasChange: '**画布零变更**'
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state`（仅此一个只读工具）'
+  alternativePaths: '`canvas_export_snapshot` 等价（问整体布局）；画布 JSON 已随消息提供时可直接引用不再调用工具'
+  forbiddenActions: 调用任何写工具；不调工具凭空描述画布内容；把快照中不存在的节点写进回答
+  requiredEvidence: canvas_get_state 真实返回；回答须引用两个节点的真实 title 或 id
+  outputFormat: 自然语言回答节点数量与连线关系，提到节点时使用真实 title/id；无 ```json
+  degradation: 读取失败时如实报告，不编造节点
+  safetyAssertions: noUnrequestedDeletion（allowedDeleteNodeIds=[]，allowedDeleteConnectionIds=[]）
+  stateAssertions: nodeCount 保持 2；connectionCount 保持 1；节点 metadata 与 title 全部未改动
+budgets:
+  maxToolCalls: 7
+  maxLatencyMs: 60000
+  maxTokens: 10000
+  maxCostCny: 0.6
+criteria:
+  rules:
+    - tool_call_match
+    - forbidden_tool
+    - state_diff_check
+    - param_check
+    - output_format_check
+    - budget_check
+  contractRefs: behaviorCategories.canvas-state-read（forbiddenTools 含全部写工具）
+  review: 待确认 · 修改意见：已确认

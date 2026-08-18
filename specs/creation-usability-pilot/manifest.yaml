@@ -1,0 +1,66 @@
+schemaVersion: 1
+status: approved_for_execution
+execution: pilot_run_ready
+sourceCatalog: ../../datasets/canvas-agent/source-task-catalog.yaml
+resourceRegistry: resource-registry.yaml
+matrix: source-capability-matrix.md
+caseDirectory: cases
+coverage:
+  totalCases: 30
+  taskDomain:
+    content_creation: 20
+    canvas_orchestration: 5
+    route_recovery: 5
+  modality:
+    t2i: 4
+    t2v: 3
+    i2v: 5
+    i2i: 6
+    v2v: 1
+    panorama: 1
+    audio: 1
+    mixed_reference_to_video: 1
+    canvas_only: 8
+  supportStatus:
+    direct: 17
+    provider_gated: 7
+    approximate: 6
+  initialState:
+    blank: 30
+  mediaInput:
+    imageComposerAttachmentCases: 12
+    imageAttachmentFiles: 14
+    videoCanvasUploadCases: 2
+    videoUploadFiles: 3
+    multiReferenceCases: 4
+    protocolUnverifiedCases: 13
+  productCapabilities:
+    panoramaPluginCases: 1
+    audioGenerationCases: 1
+  storyStructure:
+    naturalLanguageCreationCases: 2
+    existingStructureEditCases: 3
+  coverageTags:
+    artifact_reply: 22
+    trigger_route: 16
+    canvas_story: 5
+    existing_structure_edit: 3
+    multi_reference: 4
+    plugin_panorama: 1
+    audio_generation: 1
+    exception_isolation: 5
+caseGroups:
+  content_creation: [CP-01, CP-02, CP-03, CP-04, CP-05, CP-06, CP-07, CP-08, CP-09, CP-10, CP-11, CP-12, CP-13, CP-14, CP-15, CP-16, CP-17, CP-18, CP-19, CP-20]
+  canvas_orchestration: [CP-21, CP-22, CP-23, CP-24, CP-25]
+  route_recovery: [CP-26, CP-27, CP-28, CP-29, CP-30]
+resourceReferences:
+  allowedDirectory: /Users/wyneefan/CodeBuddy/echo-infinite-canvas-main-7.27/agent-eval-platform/third_party/comfybench-reference/dataset/benchmark/resource
+  copyPolicy: reference_only_no_binary_copy
+  prohibitedUsage: [public_figure_identity_edit, recognizable_celebrity_or_idol, watermark_removal, rights_sensitive_source]
+reviewOrder:
+  - CP-01, CP-02, CP-04 through CP-06, CP-08: 基础文生图/文生视频链路；CP-03 为3D全景插件生成，CP-07 为音频生成
+  - CP-09 through CP-12, CP-15 through CP-20: 同轮图片附件与文字提示词的参考图任务；CP-15、CP-16 为双图参考
+  - CP-13: 同轮图片附件加本Case上传视频节点的图视频混合参考候选
+  - CP-14: 空白画布上传两段安全视频后生成新视频的双视频参考候选
+  - CP-21 through CP-25: 自然语言故事创建、既有结构局部改写与可达性
+  - CP-26 through CP-30: 空白画布的隔离、澄清、附件失败与生成失败事实回复

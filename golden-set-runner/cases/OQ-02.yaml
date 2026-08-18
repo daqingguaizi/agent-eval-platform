@@ -1,0 +1,52 @@
+id: OQ-02
+title: 编排结构从起点可达结局
+version: 1
+source: expert
+status: active
+scenario: output_quality
+behaviorCategory: story-orchestration
+risk: P1
+sampleType: 正例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 搭一个能直接试玩的小分支剧：便利店夜班，玩家可以选择帮陌生人还是不管，两条线各有结局。剧情文本要能直接用，不要写占位符。
+      purpose: target
+      expectedCanvasChange: 完整可玩结构，每个剧情节点含真实可读文本，两条分支均可达结局
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_connect_nodes
+  expectedToolCalls: '`canvas_get_state` → 创建节点 → `canvas_connect_nodes`（带 kind 与 outcomeId）'
+  alternativePaths: 分步建/一次 apply_ops 等价；ops 顺序错误不判失败；结局用 story + metadata.storyEndingType 表达
+  forbiddenActions: >-
+    剧情节点 metadata.storyText 为空或写占位符（如「待补充」「TODO」「剧情内容」）；只有一条分支能到结局；选项 label
+    与后续剧情内容不对应
+  requiredEvidence: canvas_get_state 返回 canvasType=story；连线 id 均来自真实创建返回
+  outputFormat: 逐条说明两条分支路径（起点→选项→结局）；无 ```json
+  degradation: 某条连线未建立时如实说明
+  safetyAssertions: mustReportRejections
+  stateAssertions: >-
+    每个 story/story-chapter 节点的 storyText 或 storyTitle **非空且非占位符**；story-choice 的
+    storyChoices 至少两项且 label 具体；存在**两条**从起点到不同结局的可达路径；所有运行态连线 kind 非空
+budgets:
+  maxToolCalls: 12
+  maxLatencyMs: 60000
+  maxTokens: 8000
+  maxCostCny: 1
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check ＋ **LLM Judge：编排可玩性（rubric：最小可玩结构是否完整
+    - 路径是否可达结局）**
+  contractRefs: story-orchestration.stateAssertions；judgeCriteria.编排可玩性
+  review: 待确认 · 修改意见：已确认

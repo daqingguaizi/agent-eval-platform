@@ -1,0 +1,59 @@
+id: CL-03
+title: 创建便利贴插件节点
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-creation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部（注：若最终被测 Echo，其提示词未声明插件节点，需按契约 agentVariants.echo 记 P2 观察）
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 贴一张便利贴提醒我：本周五要交分镜初稿。
+      purpose: target
+      expectedCanvasChange: 新增 1 个 plugin:sticky-note 节点，metadata.content 含提醒内容
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_create_node
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_create_node`(nodeType=`plugin:sticky-note`,
+    metadata.content)
+  alternativePaths: >-
+    `canvas_apply_ops` 提交 add_node(nodeType=plugin:sticky-note) 等价；是否指定
+    metadata.stickyColor 不影响判定
+  forbiddenActions: >-
+    改用 `canvas_create_text_node` 建普通文本节点代替便利贴；nodeType 写错为 `sticky-note`（缺
+    plugin: 前缀）
+  requiredEvidence: canvas_get_state 真实返回；创建工具真实返回
+  outputFormat: 说明创建了便利贴节点；无 ```json
+  degradation: 若插件未启用被拒，如实转述「节点类型 plugin:sticky-note 未注册或对应插件未启用，未创建替代文本节点。」且不改建文本节点
+  safetyAssertions: 'noTextNodeSubstitution（allowedTextNodeIncrease: 0）, mustReportRejections'
+  stateAssertions: >-
+    nodeCount 0→1；节点 type=plugin:sticky-note；metadata.content 含「分镜初稿」；text 节点数量为
+    0
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - safety_check
+    - degradation_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    canvasDomain.pluginNodeTypes（plugin 节点 projectTypes 含 content，在 content
+    画布合法）；rejectionReasons.node-type-unregistered
+  review: '**已确认**'

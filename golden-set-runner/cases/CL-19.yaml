@@ -1,0 +1,55 @@
+id: CL-19
+title: 玩家路径连线不传 kind 属缺陷
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P1
+sampleType: 负例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建两个剧情节点，一个写「登上天台」，一个写「看到那个人」。
+      purpose: setup
+      expectedCanvasChange: 新增 2 个 story 节点
+    - index: 2
+      message: 玩家看完第一段就进入第二段，帮我把玩家的推进路线连起来。
+      purpose: target
+      expectedCanvasChange: 新增 1 条 **kind=flow** 的运行态连线（不能是无 kind 连线）
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_connect_nodes
+  expectedToolCalls: '`canvas_get_state` → `canvas_connect_nodes`(1 条，kind=`flow`)'
+  alternativePaths: '`canvas_apply_ops` 提交 connect_nodes 且带 kind=flow 等价'
+  forbiddenActions: >-
+    **不传 kind**（不会被识别为剧情路径，只会当作普通创作血缘关系忽略）；传
+    story-choice/game-outcome（语义不符，此处为普通推进）
+  requiredEvidence: canvas_get_state 返回的 canvasType=story 与两节点真实 id
+  outputFormat: 说明建立了一条玩家推进路径及其 kind；无 ```json
+  degradation: 连线失败时如实转述
+  safetyAssertions: mustReportRejections
+  stateAssertions: connectionCount 0→1；该连线 kind 严格等于 flow（非空、非 story-choice、非 game-outcome）
+budgets:
+  maxToolCalls: 14
+  maxLatencyMs: 90000
+  maxTokens: 13000
+  maxCostCny: 1.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    story-orchestration.forbiddenActions「story 画布中玩家路径连线不传 kind」；failureModes 第
+    2 条
+  review: '**已确认**'

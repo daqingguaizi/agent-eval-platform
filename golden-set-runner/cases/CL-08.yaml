@@ -1,0 +1,54 @@
+id: CL-08
+title: 更新文本节点内容
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-update
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个文本节点，标题「开场旁白」，内容写：城市在雨里醒来。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 text 节点，title=开场旁白
+    - index: 2
+      message: 把「开场旁白」的内容改成：雨停了，城市还没醒。
+      purpose: target
+      expectedCanvasChange: 该节点 metadata.content 更新为新文案，title 与节点数量不变
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_update_node_text
+  expectedToolCalls: '`canvas_get_state` → `canvas_update_node_text`(id, text)'
+  alternativePaths: >-
+    `canvas_update_node`(id, metadata.content) 等价；`canvas_apply_ops` 提交
+    update_node 等价
+  forbiddenActions: 未先读状态就更新；新建节点代替更新；使用不存在的 id
+  requiredEvidence: canvas_get_state 返回的目标节点真实 id 与原内容
+  outputFormat: 点明被更新的节点与字段；无 ```json
+  degradation: 更新失败时如实报告
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 保持 1；目标节点 metadata.content 为新文案；title 仍为「开场旁白」；type 仍为 text
+budgets:
+  maxToolCalls: 7
+  maxLatencyMs: 60000
+  maxTokens: 10000
+  maxCostCny: 1
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - budget_check
+  contractRefs: behaviorCategories.node-update
+  review: '**已确认**'

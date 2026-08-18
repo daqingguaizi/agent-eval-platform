@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "specVersion": "1.5.0",
+  "collectionId": "creation-usability-pilot-demo",
+  "generatedAt": "2026-08-18T00:00:00.000Z",
+  "cases": [
+    {
+      "id": "CP-99",
+      "title": "儿童绘本封面生成（演示）",
+      "taskDomain": "content_creation",
+      "modality": "t2i",
+      "tier": "vanilla",
+      "canvasType": "content",
+      "coverageTags": ["artifact_reply"]
+    }
+  ],
+  "distributions": {
+    "taskDomain": { "content_creation": 1 },
+    "modality": { "t2i": 1 },
+    "tier": { "vanilla": 1 }
+  }
+}

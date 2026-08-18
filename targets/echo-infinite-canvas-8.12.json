@@ -1,0 +1,14 @@
+{
+  "id": "echo-infinite-canvas-8.12",
+  "displayName": "Echo Infinite Canvas v0.14.7",
+  "productRoot": "${ECHO_TARGET_ROOT}",
+  "webRoot": "${ECHO_TARGET_WEB_ROOT}",
+  "canvasAgentRoot": "${ECHO_TARGET_CANVAS_AGENT_ROOT}",
+  "versionFile": "${ECHO_TARGET_ROOT}/VERSION",
+  "selectionStatus": "external-runtime-required",
+  "runnerBinding": "golden-set-runner loads the target adapter from ECHO_TARGET_WEB_ROOT at runtime",
+  "evaluationExecution": "requires-external-target",
+  "pilotCollection": "creation-usability-pilot",
+  "pilotCollectionVersion": "2026-08-12.1",
+  "scoring": "enabled-through-pilot-score"
+}

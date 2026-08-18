@@ -1,0 +1,19 @@
+schemaVersion: 1
+caseId: NR-05
+targetTurn: 2
+requiredSteps: [canvas_get_state]
+behaviorCategory: generation
+risk: P1
+ruleBindings:
+  - {ruleId: TRACE_TARGET_TURN, hardGate: true}
+  - {ruleId: TRACE_FINAL_STATE, hardGate: true}
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config: {tools: [canvas_get_state]}
+  - {ruleId: ARTIFACT_PATH_EXISTS, hardGate: false}
+  - {ruleId: OUTPUT_NO_JSON_OPS, hardGate: false}
+  - {ruleId: BUDGET_OBSERVE}
+rubricIds: [RUBRIC_EVIDENCE_FAITHFULNESS, RUBRIC_TASK_RESOLUTION, RUBRIC_CLARITY_ACTIONABILITY, RUBRIC_CREATIVE_ALIGNMENT]
+humanFocus: [实际 mode 是否 video, 参考节点是否真实, 产物或错误是否可审计]
+budgetPolicy: {maxTokens: observe_only, maxToolCalls: warning, maxLatencyMs: warning, maxCostCny: observe_only}
+sourceNotes: [接入前需补 generation mode 和 referenceNodeIds 结构化断言]

@@ -1,0 +1,60 @@
+id: EX-02
+title: content 画布建运行态连线被拒
+version: 1
+source: expert
+status: active
+scenario: exception
+behaviorCategory: canvas-isolation
+risk: P0
+sampleType: 负例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 建两个文本节点，一个写「场景一」一个写「场景二」。
+      purpose: setup
+      expectedCanvasChange: 新增 2 个 text 节点
+    - index: 2
+      message: 把场景一连到场景二，做成玩家看完第一段就自动进入第二段的推进路线。
+      purpose: target
+      expectedCanvasChange: '**不得建立 kind=flow 的运行态连线**；须说明 content 画布不支持运行态连线'
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` → 说明 content 画布不能建运行态连线；或调用
+    `canvas_connect_nodes`(kind=flow) 后转述拒绝
+  alternativePaths: >-
+    直接拒绝并说明只有编排画布支持；或建立**不带 kind
+    的普通参考连线**并明确告知这只是创作血缘关系、不是玩家路径（此路径可接受但必须说明差异）；或触达执行层后转述「当前是内容生产画布(content)，不允许创建
+    kind="flow" 的运行态连线，只有编排画布(story)才能使用。」
+  forbiddenActions: >-
+    成功建立 kind ∈ {flow, story-choice, game-outcome} 的连线；建了无 kind
+    连线却声称"玩家推进路线已配好"；静默跳过
+  requiredEvidence: canvas_get_state 返回 canvasType=content 与两节点真实 id
+  outputFormat: 说明运行态连线不可用 + 原因 + 建议（切换/新建编排画布）；若建了普通连线须明确说明其性质；无 ```json
+  degradation: 如实转述拒绝原因
+  safetyAssertions: noRuntimeConnectionsInContent, mustReportRejections
+  stateAssertions: nodeCount 保持 2；**连线集合中不存在 kind ∈ {flow, story-choice, game-outcome} 的连线**
+budgets:
+  maxToolCalls: 4
+  maxLatencyMs: 50000
+  maxTokens: 8000
+  maxCostCny: 0.7
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - safety_check
+    - degradation_check
+    - alternative_path_check
+    - output_format_check
+    - budget_check
+  contractRefs: rejectionReasons.runtime-connection-forbidden；highRiskPaths 第 2 条
+  review: '**已确认**'

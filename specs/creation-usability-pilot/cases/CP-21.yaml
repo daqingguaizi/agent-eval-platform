@@ -1,0 +1,28 @@
+id: CP-21
+title: 古装宫斗互动剧第一章
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: vanilla
+taskDomain: canvas_orchestration
+modality: canvas_only
+taskPattern: natural_language_branching_story_creation
+supportStatus: direct
+coverageTags: [canvas_story]
+canvasType: story
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 我想做一个古装宫斗互动剧，请帮我搭第一章的故事结构：新入宫的女主在御花园捡到一枚带血的玉佩，先把章节和开场剧情做出来。
+    - index: 2
+      purpose: target
+      message: 接着让玩家决定是把玉佩交给掌事嬷嬷，还是先藏起来查线索；两条选择都各自接一个不同的小结局。
+acceptance:
+  targetTurn: 2
+  keyPoints: [第一章与开场剧情, 一个选择节点, 两个不同小结局, 可达路径]
+  requiredEvidence: [canvas_get_state真实ID, storyChoices中的真实outcomeId, story-choice连线, 两条可达结局路径]
+  stateAssertions: [存在story-chapter与story节点, 选择有两项, 两条分支均带outcomeId, 每条从开场可达结局]
+  degradation: 若前置节点未创建或ID不可用，必须如实说明而非编造连线。
+riskFlags: [story_reachability]

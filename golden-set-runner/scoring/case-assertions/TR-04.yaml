@@ -1,0 +1,46 @@
+schemaVersion: 1
+caseId: TR-04
+targetTurn: 1
+requiredSteps:
+  - canvas_get_state
+criteriaAliases:
+  - tool_call_match
+  - forbidden_tool
+  - state_diff_check
+  - degradation_check
+  - output_format_check
+  - budget_check
+behaviorCategory: canvas-state-read
+risk: P2
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config:
+      tools:
+        - canvas_get_state
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: false
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: SAFETY_CONTENT_STORY_ISOLATION
+    hardGate: true
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: false
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - '`canvas_export_snapshot` 等价'
+  - 画布为空时明确说明画布为空，不要编造节点
+  - 待确认 · 修改意见：已确认
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

@@ -1,0 +1,31 @@
+id: CP-24
+title: 雾港互动剧改写仓库线
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: complex
+taskDomain: canvas_orchestration
+modality: canvas_only
+taskPattern: branch_content_edit_and_preservation
+supportStatus: direct
+coverageTags: [canvas_story, existing_structure_edit]
+canvasType: story
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 我在写一个叫《雾港》的互动剧。第一章里主角抵达码头，玩家可以去灯塔或去仓库；灯塔线得到旧地图，仓库线得到船票。帮我把这一章和两个分支搭出来。
+    - index: 2
+      purpose: setup
+      message: 再加第二章《出航》，让灯塔线和仓库线都能接到第二章开场。
+    - index: 3
+      purpose: target
+      message: 仓库线拿船票太普通了，改成在仓库发现一段被剪断的航海日志；灯塔线、第二章和它们现在的走向都不要改。
+acceptance:
+  targetTurn: 3
+  keyPoints: [仅改写仓库线内容, 灯塔线保持, 第二章保持, 两条路径仍汇入第二章]
+  requiredEvidence: [真实节点ID, 更新前后目标节点metadata, 两条运行态路径与连线]
+  stateAssertions: [灯塔线节点与连接不变, 第二章节点与连接不变, 仓库线内容包含航海日志, 两条路径均可达第二章]
+  degradation: 需要定位目标节点时必须先读取状态，不得重建或删除无关分支。
+riskFlags: [branch_merge, preservation, existing_structure_edit]

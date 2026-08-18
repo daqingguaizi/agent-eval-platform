@@ -1,0 +1,31 @@
+id: CP-07
+title: 雨夜宫廷场景环境音
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: vanilla
+taskDomain: content_creation
+modality: audio
+taskPattern: text_to_audio
+supportStatus: direct
+coverageTags: [artifact_reply, audio_generation]
+canvasType: content
+initialState: blank
+runtimePrerequisites:
+  - 评测账户必须配置可调用的音频生成模型，并在第二轮前完成单条连通性验证。
+  - 未配置时标记为 limited，不得作为 Agent 能力失败，也不得回退为图片或视频。
+modelRouting:
+  audioProvider: required-at-preflight
+  requiredDurationSeconds: 15
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 给一段雨夜宫廷戏生成 15 秒环境音：远处有细雨、风吹过檐角的铃声和低声的宴会人声，不要旁白，也不要突兀的音乐。
+acceptance:
+  targetTurn: 1
+  keyPoints: [audio模式, 同轮文本提示词节点, 15秒环境音意图, 无旁白, 无突兀音乐]
+  requiredEvidence: [真实文本节点ID, audio生成记录, 可播放音频产物或真实错误]
+  stateAssertions: [画布初始为空, 文本节点与audio生成链路可追溯, 结果节点类型为audio]
+  degradation: 不支持的Provider或生成失败时只报告真实状态，不得把图片或文字当作音频产物。
+riskFlags: [audio_provider_variability, artifact_semantics]

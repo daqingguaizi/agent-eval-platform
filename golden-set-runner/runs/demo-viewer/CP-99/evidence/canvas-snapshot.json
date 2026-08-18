@@ -1,0 +1,12 @@
+{
+  "canvasType": "content",
+  "nodes": [
+    { "id": "demo-text", "type": "text", "title": "绘本封面提示词", "metadata": { "content": "温暖草地上的小狗，标题留白" } },
+    { "id": "demo-config", "type": "config", "title": "图片生成配置", "metadata": { "generationMode": "image" } },
+    { "id": "demo-image", "type": "image", "title": "演示图片节点", "metadata": { "status": "success", "content": "demo-placeholder" } }
+  ],
+  "connections": [
+    { "fromNodeId": "demo-text", "toNodeId": "demo-config", "kind": "input" },
+    { "fromNodeId": "demo-config", "toNodeId": "demo-image", "kind": "output" }
+  ]
+}

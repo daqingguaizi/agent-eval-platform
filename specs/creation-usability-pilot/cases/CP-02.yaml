@@ -1,0 +1,25 @@
+id: CP-02
+title: 日落海滩旅行海报
+status: draft
+source: source-derived
+sourceTaskIds: ["006"]
+tier: vanilla
+taskDomain: content_creation
+modality: t2i
+taskPattern: text_to_image
+supportStatus: direct
+coverageTags: [artifact_reply]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 给旅行社夏季活动做一张横版海报主视觉：日落海滩、远处帆船、金色海面和前景脚印，左上角留出标题区，不要生成可读文字。
+acceptance:
+  targetTurn: 1
+  keyPoints: [image模式, 同轮文本提示词节点, 横版旅行海报, 日落海滩, 帆船与脚印, 左上留白, 无编造文字]
+  requiredEvidence: [真实文本节点ID, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, 文本节点与image生成链路可追溯]
+  degradation: 无产物时只说明真实状态。
+riskFlags: [artifact_semantics]

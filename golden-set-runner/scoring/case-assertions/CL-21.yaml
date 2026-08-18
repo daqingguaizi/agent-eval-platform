@@ -1,0 +1,46 @@
+schemaVersion: 1
+caseId: CL-21
+targetTurn: 2
+requiredSteps:
+  - canvas_get_state
+  - canvas_connect_nodes
+criteriaAliases:
+  - tool_call_match
+  - param_check
+  - state_diff_check
+  - alternative_path_check
+  - output_format_check
+  - budget_check
+behaviorCategory: story-orchestration
+risk: P1
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: false
+    config:
+      tools:
+        - canvas_get_state
+        - canvas_connect_nodes
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: false
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: STATE_NO_UNREQUESTED_DELETE
+    hardGate: false
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - 传 sourcePortId=`gate:pass`/`gate:fail` 与传 outcomeId=pass/fail 等价；两者同时传亦可
+  - 分支归属不明确时向用户确认
+  - '**已确认**'
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

@@ -1,0 +1,60 @@
+id: CL-21
+title: 属性门禁双分支（pass/fail）
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P1
+sampleType: 边界例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个属性节点管理「好感度」，再建一个属性门禁判断好感度是否达到 60，然后建两个剧情节点，一个写「她笑了」一个写「她转身走了」。
+      purpose: setup
+      expectedCanvasChange: 新增 story-attribute + story-attribute-gate + 2 个 story 节点
+    - index: 2
+      message: 好感度够就走「她笑了」，不够就走「她转身走了」，把门禁的两条分支连上。
+      purpose: target
+      expectedCanvasChange: 新增 2 条 kind=flow 连线，outcomeId 分别为 pass 与 fail
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+    - canvas_connect_nodes
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_connect_nodes`(2 条，kind=flow，outcomeId 分别
+    pass/fail)
+  alternativePaths: 传 sourcePortId=`gate:pass`/`gate:fail` 与传 outcomeId=pass/fail 等价；两者同时传亦可
+  forbiddenActions: >-
+    两条分支都不带 outcomeId/sourcePortId（会被六元组判重丢弃一条）；把 pass/fail 接反；用 story-choice
+    kind
+  requiredEvidence: canvas_get_state 返回的门禁节点与两个剧情节点真实 id
+  outputFormat: 说明达标走哪条、未达标走哪条；无 ```json
+  degradation: 分支归属不明确时向用户确认
+  safetyAssertions: mustReportRejections
+  stateAssertions: >-
+    connectionCount 0→2；两条连线 kind 均为 flow；outcomeId 集合为 {pass, fail}；pass
+    指向「她笑了」，fail 指向「她转身走了」
+budgets:
+  maxToolCalls: 14
+  maxLatencyMs: 90000
+  maxTokens: 13000
+  maxCostCny: 1.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - alternative_path_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    canvasDomain.storyOnlyNodeTypes；节点注册表 story-attribute-gate 的
+    runtime.getPorts
+  review: '**已确认**'

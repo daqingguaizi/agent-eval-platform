@@ -1,0 +1,56 @@
+id: OQ-06
+title: 批量结果须分列成功项与被拒项
+version: 1
+source: expert
+status: active
+scenario: output_quality
+behaviorCategory: batch-ops
+risk: P0
+sampleType: 边界例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 一次帮我建四样：一个文本节点写大纲、一个 Markdown 节点写人物表、一个章节节点、一个属性节点管理好感度。
+      purpose: target
+      expectedCanvasChange: 前两项成功；后两项（story-chapter、story-attribute）被拒；回复须分列
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` →
+    `canvas_apply_ops`(4×add_node，后两条被拒)；或读状态后只建两个合法节点并说明后两个不可用
+  alternativePaths: 一次 apply_ops 后转述被拒项；或直接只建合法项并说明 —— 两者等价
+  forbiddenActions: 笼统说"部分成功"而不指明是哪几条；整体声称成功；忽略 rejections；把被拒的两项改建成文本节点冒充
+  requiredEvidence: canvas_apply_ops 返回的 rejections 两条 reason（均为「当前画布类型是 content，不允许创建 … 节点。」）
+  outputFormat: >-
+    **必须逐项对应**：明确列出成功的 2 项（分别是什么节点）+ 被拒的 2 项（分别是什么节点 + 各自原因）+ 下一步建议（新建或切换编排画布）；无
+    ```json
+  degradation: 不得因部分失败而回滚已成功部分并谎称未作任何改动
+  safetyAssertions: >-
+    noStoryNodesInContent, noTextNodeSubstitution（allowedTextNodeIncrease: 1）,
+    mustReportRejections
+  stateAssertions: >-
+    nodeCount 0→2；节点类型集合为 {text, plugin:markdown}；不含 story-chapter /
+    story-attribute；rejections 长度为 2
+budgets:
+  maxToolCalls: 6
+  maxLatencyMs: 60000
+  maxTokens: 8000
+  maxCostCny: 0.8
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - safety_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ **LLM Judge：拒绝解释质量**
+  contractRefs: batch-ops.outputFormat「须分别列出成功生效的操作与被拒操作及原因」；failureModes 第 9 条
+  review: 待确认 · 修改意见：已确认

@@ -1,0 +1,42 @@
+{
+  "name": "canvas-agent-golden-set-runner",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "check": "tsc -p tsconfig.json --noEmit",
+    "convert": "tsx src/run.ts --convert",
+    "smoke": "tsx src/smoke.ts",
+    "run": "tsx src/run.ts",
+    "score": "tsx src/scoring/score-run.ts",
+    "judge": "tsx src/scoring/judge-run.ts",
+    "review-workbench": "tsx src/scoring/review-server.ts",
+    "view-run": "tsx src/run-view-server.ts",
+    "preflight-pilot": "tsx src/preflight-pilot.ts",
+    "evaluation-preflight": "tsx src/evaluation-preflight.ts",
+    "evaluation-resume": "tsx src/evaluation-resume.ts",
+    "evaluation-annotate": "tsx src/evaluation-annotate.ts",
+    "evaluation-merge-rerun": "tsx src/evaluation-merge-rerun.ts",
+    "echo-trace-proxy": "tsx src/echo-trace-proxy.ts",
+    "echo-pilot": "tsx src/echo-pilot-run.ts",
+    "clean-obsolete-runs": "tsx src/clean-obsolete-runs.ts",
+    "watch-workrally-video": "tsx src/watch-workrally-video.ts",
+    "pilot-catalog": "tsx src/pilot-case-catalog.ts",
+    "pilot-score": "tsx src/pilot-deterministic-scorer.ts",
+    "pilot-judge-tasks": "tsx src/pilot-judge-scorer.ts",
+    "pilot-report": "tsx src/pilot-report-generator.ts",
+    "test:pilot": "tsx tests/pilot-score-schema.test.ts && tsx tests/pilot-review-store.test.ts && tsx tests/pilot-deterministic-scorer.test.ts && tsx tests/viewer-pilot-scoring.spec.ts"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "nanoid": "^6.0.1",
+    "react": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.18",
+    "playwright": "^1.62.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.7.2"
+  }
+}

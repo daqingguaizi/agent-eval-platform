@@ -1,0 +1,872 @@
+# =============================================================
+# 画布 Agent 通用质量契约 —— 定稿标准 v1.0
+# 由 quality-contract-author Skill 产出
+#
+# 适用对象：本项目全部画布 Agent —— Echo(online) / CodeX(local) / Hermes(hermes)
+# 三者工具面完全一致（同 23 个 infinite-canvas 工具），执行层判定同一份
+# canvas-agent-ops.ts，因此共用本契约主体；运行机制与提示词差异写在 agentVariants。
+#
+# 版本沿革：
+#   v0.1-v0.3 为 Echo 专属契约（standards/echo.yaml，仅 3 个行为类别），已被本文件取代
+#   v1.0：① 由 Echo 专属升级为画布 Agent 家族通用契约（新增 agentVariants）
+#         ② 行为类别由 3 类扩展为 10 类，覆盖只读/创建/更新/删除/编排/生成/批量/布局/隔离/降级
+#         ③ 修正 v0.3 的错误工具名 canvas_create_nodes（代码中不存在）
+#            → 真实工具为 canvas_create_node / canvas_create_text_node / canvas_create_text_nodes
+#         ④ 拒绝原因由执行层 6 种 CanvasAgentOpRejection.reason 逐条落为可评测项
+# =============================================================
+
+# ===== 顶层元信息 =====
+agent: canvas-agent
+agents: [echo, codex, hermes]
+version: "1.0"
+generatedBy: quality-contract-skill
+sourceRefs:
+  # —— 家族范围与三 Agent 隔离事实 ——
+  - block: agents / agentVariants
+    file: docs/content/docs/backend/agent-connection-isolation.mdx
+    quote: "画布助手有 Echo（online）、CodeX（local）、Hermes（hermes）三个 Agent…每个 Agent 的地址、token、webhook、模型渠道各自独立"
+  # —— 工具面（三者一致，23 个）——
+  - block: capabilities.tools
+    file: canvas-agent/src/schemas.ts
+    quote: 'export const toolNames = ["canvas_get_state","canvas_get_selection","canvas_export_snapshot","canvas_apply_ops","canvas_create_node","canvas_create_text_node","canvas_create_text_nodes","canvas_create_config_node","canvas_create_image_prompt_flow","canvas_create_generation_flow","canvas_generate_text","canvas_generate_image","canvas_generate_video","canvas_generate_audio","canvas_update_node","canvas_update_node_text","canvas_move_nodes","canvas_resize_node","canvas_delete_nodes","canvas_connect_nodes","canvas_select_nodes","canvas_set_viewport","canvas_run_generation"] as const;'
+  - block: capabilities.tools（Echo 侧同名同义）
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: 'const ONLINE_AGENT_TOOLS: ResponseFunctionTool[] = [ toolDefinition("canvas_get_state", …), toolDefinition("canvas_create_text_nodes", …), … ]'
+  - block: capabilities.tools（工具参数 schema 与语义）
+    file: canvas-agent/src/schemas.ts
+    quote: "export const toolInputSchemas = { canvas_apply_ops: z.object({ ops: z.array(canvasOpSchema) }), … } satisfies Record<ToolName, z.AnyZodObject>;"
+  # —— 提示词 ——
+  - block: capabilities.instructions（Echo）
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: 'ONLINE_AGENT_PROMPT = "你是 EchoDrama 网页内置在线画布助手。当前画布 JSON 会随用户消息提供，其中 canvasType 标明画布类型：content 是内容生产画布…story 是编排画布…首轮必须调用工具…不要输出 JSON ops，不要编造执行结果。"'
+  - block: capabilities.instructions（CodeX / Hermes 共用）
+    file: canvas-agent/src/config.ts
+    quote: 'AGENT_PROMPT = "你正在帮助用户操作 EchoDrama 网页画布。需要改动画布时优先使用已配置的 infinite-canvas MCP 工具：先 canvas_get_state 读取当前画布…复杂批量改动再用 canvas_apply_ops，删除连线可用 delete_connections…不要模拟鼠标点击，不要要求用户手动复制 JSON。"'
+  - block: behaviorCategories.node-creation（插件节点）
+    file: canvas-agent/src/config.ts
+    quote: 'canvas_create_node 还可请求浏览器已启用的插件节点：plugin:sticky-note（便利贴，metadata.content/stickyColor）、plugin:markdown（Markdown，metadata.content 写 Markdown 源文）、plugin:panorama（3D 全景，metadata.prompt 写画面描述；metadata.content 只填写已存在的全景图片 URL/data URL）…收到拒绝时不要改建普通文本节点冒充。'
+  # —— 执行层：唯一权威判定源 ——
+  - block: behaviorCategories.batch-ops（op 全集）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'export type CanvasAgentOp = { type: "add_node" … } | { type: "update_node" … } | { type: "delete_node" … } | { type: "delete_connections" … } | { type: "connect_nodes" … } | { type: "set_viewport" … } | { type: "select_nodes" … } | { type: "run_generation" … }'
+  - block: behaviorCategories.canvas-isolation（拒绝语义）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'export type CanvasAgentOpRejection = { op: CanvasAgentOp; reason: string }; // "如果工具 schema 不支持某个节点类型、某个连线字段或某个操作，Agent 应返回明确失败原因，不得假装执行成功"'
+  - block: behaviorCategories.node-creation（未注册/未启用插件被拒）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'rejections.push({ op, reason: `节点类型 ${nodeType} 未注册或对应插件未启用，未创建替代文本节点。` });'
+  - block: behaviorCategories.node-creation（不允许 Agent 创建被拒）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'rejections.push({ op, reason: `节点类型 ${nodeType} 不允许由 Agent 创建。` });'
+  - block: behaviorCategories.canvas-isolation（画布类型不允许该节点）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'rejections.push({ op, reason: `当前画布类型是 ${snapshot.canvasType}，不允许创建 ${nodeType} 节点。` });'
+  - block: behaviorCategories.node-update（patch.type 越界二次拦截）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'if (blockedNodeType) rejections.push({ op, reason: `当前画布类型是 ${snapshot.canvasType}，不允许把节点类型改成 ${blockedNodeType}，节点类型未被修改。` }); // update_node 的 patch.type 能直接覆盖节点类型，如果不过滤，content 画布里可以把一个普通节点 patch 成 Story/Game 类型，绕开 add_node 那层拦截'
+  - block: behaviorCategories.canvas-isolation（运行态连线越界）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'rejections.push({ op, reason: `当前是内容生产画布(content)，不允许创建 kind="${op.kind}" 的运行态连线，只有编排画布(story)才能使用。` });'
+  - block: behaviorCategories.story-orchestration（引用不存在节点）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'rejections.push({ op, reason: `连接节点失败：找不到节点 ${missingIds.join("、")}，请确认节点已创建且 id 正确。` });'
+  - block: behaviorCategories.batch-ops（ops 顺序由执行层兜底）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "function reorderOpsAddNodeFirst(ops) { … } // 执行前统一把所有 add_node 提到最前面（稳定排序，保持组内原有相对顺序），从根源上消除这种顺序敏感问题"
+  - block: behaviorCategories.layout-viewport（坐标碰撞由执行层兜底）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "function resolveNonOverlappingPosition(position, width, height, existingNodes) { const margin = 24; … for (let attempt = 0; attempt < 40; attempt++) … y += height + margin; }"
+  - block: behaviorCategories.node-creation（panorama metadata 归一）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "function normalizeAgentNodeMetadata(nodeType, metadata) { if (nodeType !== PluginCanvasNodeType.Panorama) return metadata; … return { ...metadata, content: \"\", prompt: metadata.prompt || content }; }"
+  - block: behaviorCategories.node-deletion（级联删连线）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "nodes = nodes.filter((node) => !ids.has(node.id)); connections = connections.filter((conn) => !ids.has(conn.fromNodeId) && !ids.has(conn.toNodeId)); selectedNodeIds = selectedNodeIds.filter((id) => !ids.has(id));"
+  - block: behaviorCategories.node-deletion（delete_connections all 破坏性）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "connections = op.all ? [] : connections.filter((conn) => !ids.has(conn.id));"
+  - block: behaviorCategories.story-orchestration（连线判重口径）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "export function isSameCanvasConnection(existing, next) { return existing.fromNodeId === next.fromNodeId && existing.toNodeId === next.toNodeId && (existing.kind || \"\") === (next.kind || \"\") && … (existing.outcomeId || \"\") === (next.outcomeId || \"\"); } // 判重必须比对 outcomeId/sourcePortId/targetPortId，否则同一对节点间的多个 outcome 分支第二条会被误判为\"已存在\"而静默丢弃"
+  - block: behaviorCategories.story-orchestration（运行态 kind 白名单）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: 'const RUNTIME_CONNECTION_KINDS = new Set<CanvasConnectionKind>(["flow", "story-choice", "game-outcome"]);'
+  - block: behaviorCategories.canvas-state-read（快照字段）
+    file: web/src/app/(user)/canvas/utils/canvas-agent-ops.ts
+    quote: "export type CanvasAgentSnapshot = { projectId; title; canvasType: \"content\" | \"story\"; nodes; connections; selectedNodeIds; viewport } // 旧数据没有 canvasType 时按 content 处理"
+  # —— 编排画布节点/连线枚举 ——
+  - block: behaviorCategories.story-orchestration（story 节点与 metadata 字段）
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "story-chapter（章节）：metadata.storyTitle、metadata.storyText…story-choice（选择）：metadata.storyChoices 是数组，每项 { id, label, nextNodeId?, effect? }…game（游戏）：metadata.gameConfig.gameplayId（puzzle / timed-puzzle / rapid-tap / quiz / dialogue-choice / spot-difference 之一）"
+  - block: behaviorCategories.story-orchestration（最小可玩结构）
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "生成一个最小可玩结构时，优先给出一个章节 + 一个起始剧情 + 一个选择 + 两三个后续剧情/游戏节点 + 至少一个结局剧情，并用显式运行态连线连好，不要在第一轮就自动创建大量节点。"
+  - block: behaviorCategories.story-orchestration（连线必须传 kind）
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "不传 kind 的连线不会被识别为剧情路径，只会被当作普通创作血缘/参考关系忽略。"
+  # —— 成功标准八要素（方法论 4.3）通用来源 ——
+  - block: successCriteria.requiredSteps / requiredEvidence
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "首轮必须调用工具：只读问题调用 canvas_get_state，需要改动画布时调用和本地 Agent 一致的 infinite-canvas 工具…工具返回结果后，再根据真实结果回答用户。"
+  - block: successCriteria.allowedAlternatives
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "需要生成内容时直接调用 canvas_generate_text、canvas_generate_image、canvas_generate_video、canvas_generate_audio 或 canvas_create_generation_flow；需要精确批量操作时调用 canvas_apply_ops。"
+  - block: successCriteria.outputFormat
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "不要输出 JSON ops，不要编造执行结果。"
+  - block: successCriteria.degradation
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "缺少必要 id 或用户意图不明确时直接说明需要用户明确选择或说明，不要猜测。"
+  # —— agentVariants 运行参数 ——
+  - block: agentVariants.echo
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "const ONLINE_AGENT_MAX_STEPS = 4; const ONLINE_AGENT_REQUEST_TIMEOUT_MS = 120_000;"
+  - block: agentVariants.echo.degradation（步数上限）
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: 'if (step >= ONLINE_AGENT_MAX_STEPS) { upsertMessage(… toolResults.map(toolResultText) …); addOnlineLog("Agent Tool Loop 达到步数上限", { maxSteps: ONLINE_AGENT_MAX_STEPS }); return; }'
+  - block: agentVariants.echo.confirmFlow
+    file: web/src/app/(user)/canvas/components/canvas-assistant-panel.tsx
+    quote: "if (confirmTools && writableCalls.length) { … pendingToolContextRef … }"
+  - block: agentVariants.codex
+    file: canvas-agent/src/agents.ts
+    quote: 'approvalPolicy: "never", sandbox: "workspace-write"'
+  - block: agentVariants.codex.mcp
+    file: canvas-agent/src/agents.ts
+    quote: 'codexConfig(): mcp_servers."infinite-canvas" = { …, default_tools_approval_mode: "approve", startup_timeout_sec: 20, tool_timeout_sec: 90 }'
+  - block: agentVariants.codex.workspaceGuard
+    file: canvas-agent/src/agents.ts
+    quote: 'assertThreadWorkspace(...) → throw new Error("该 Codex 会话不属于当前画布工作空间")'
+  - block: agentVariants.hermes
+    file: docs/content/docs/backend/agent-connection-isolation.mdx
+    quote: "Hermes：浏览器 → 云端 canvas-agent → hermes webhook，MCP 工具调用经 SSE 回浏览器执行"
+  # —— 可判定性（评分器已实现）——
+  - block: scoringHints.ruleFirst
+    file: agent-eval-platform/src/scorers/rule/index.ts
+    quote: "handlers = { tool_call_match, param_check, tool_call_order, state_diff_check, safety_check, forbidden_tool, format_check, output_format_check, degradation_check, alternative_path_check, budget_check, consistency_check }"
+  - block: successCriteria.budgets（可判定性）
+    file: agent-eval-platform/src/scorers/rule/index.ts
+    quote: 'if (typeof expected.max_tool_calls === "number" && toolSpans(trace).length > expected.max_tool_calls) … max_latency_ms … max_tokens … max_cost_cny …'
+  # —— 用户确认结论（沿用 v0.3，未变更）——
+  - block: capabilities.knowledgeSources
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #1（用户确认）
+    quote: "没有接入外部知识库"
+  - block: capabilities.authentication
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #2（用户确认）
+    quote: "这个先不填"
+  - block: capabilities.sensitiveDataTypes
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #3（用户确认）
+    quote: "没有接触敏感数据"
+  - block: priorities.P1.gates.passRate
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #4（用户确认）
+    quote: "确认"
+  - block: scoringHints.judgeCriteria
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #6（用户确认）
+    quote: "确认"
+  - block: successCriteria.requiredSteps / forbiddenActions（强制先读状态）
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #B5（用户裁定）
+    quote: "B5：强制"
+  - block: successCriteria.budgets（node-creation / generation / canvas-isolation 三组数值）
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #B1-B4（用户确认）
+    quote: "B1-B4:确认"
+  # —— 本轮新增待确认项（建议值，未经用户确认，见 open-questions C 组）——
+  - block: successCriteria.budgets（新增 7 个类别）
+    file: specs/contracts/drafts/canvas-agent/open-questions.md #C1-C6（待确认）
+    quote: "新增 7 个行为类别的 budgets、Hermes 超时上限、goldenTarget 规模、delete_connections all 是否强制二次确认，均为建议值"
+
+# ===== 类型识别 =====
+agentTypes: [工具执行, 创意生成]
+skills: [canvas-ops, generation]
+categories:
+  - { id: canvas-state-read, title: 画布状态读取与理解, riskLevel: low }
+  - { id: node-creation, title: 节点创建, riskLevel: medium }
+  - { id: node-update, title: 节点更新与编辑, riskLevel: medium }
+  - { id: node-deletion, title: 节点与连线删除, riskLevel: high }
+  - { id: story-orchestration, title: 连线与剧情编排, riskLevel: medium }
+  - { id: generation, title: 内容生成, riskLevel: medium }
+  - { id: batch-ops, title: 批量操作 apply_ops, riskLevel: high }
+  - { id: layout-viewport, title: 布局与视口, riskLevel: low }
+  - { id: canvas-isolation, title: content/story 硬隔离与越界拒绝, riskLevel: high }
+  - { id: clarification-degradation, title: 澄清与优雅失败, riskLevel: medium }
+
+# ===== 能力画像（三个画布 Agent 共用）=====
+capabilities:
+  overview:
+    purpose: "EchoDrama 画布助手：在无限画布上创建/读取/编辑/删除/连接节点，搭建并驱动文图音视频生成流程，以及编排互动剧运行态剧情路径"
+    targetUsers: "内容创作者 / 互动剧编排创作者（EchoDrama 画布用户）"
+    channels: [EchoDrama 网页画布助手面板（Echo 在线面板 / CodeX·Hermes 本地面板）]
+  instructions: >
+    画布 Agent 的共同指令基线（Echo 的 ONLINE_AGENT_PROMPT 与 CodeX/Hermes 的 AGENT_PROMPT 交集）：
+    需要改动画布时先调 canvas_get_state 读取当前画布；canvasType 标明画布类型，content 是内容生产画布
+    （文本/图片/视频/音频/生成配置节点，记录创作血缘与参考关系），story 是编排画布（记录玩家可体验的
+    剧情流程、选择、游戏和运行态分支）。生成内容直接调用 canvas_generate_text/image/video/audio 或
+    canvas_create_generation_flow；复杂批量改动用 canvas_apply_ops；删除连线用 delete_connections。
+    不要输出 JSON ops，不要编造执行结果，不要模拟鼠标点击，不要要求用户手动复制 JSON。
+    工具参数涉及已有节点时必须使用画布中真实存在的 id；缺少必要 id 或用户意图不明确时直接说明需要
+    用户明确选择或说明，不要猜测。canvasType=content 时用户要求互动剧编排节点（章节/剧情/选项/检查点/
+    属性/门禁/游戏）应提示新建或切换到编排画布。story 画布运行态节点字段写入 metadata；玩家路径推进
+    必须用 canvas_connect_nodes 显式传 kind（flow / story-choice / game-outcome，后两者需传 outcomeId），
+    不传 kind 的连线不会被识别为剧情路径。插件节点（plugin:sticky-note / plugin:markdown / plugin:panorama）
+    由浏览器统一节点注册表最终校验，收到拒绝时不要改建普通文本节点冒充。工具返回结果后，再根据真实结果回答用户。
+  knowledgeSources: []
+  # 23 个工具，三个 Agent 完全一致（真源：canvas-agent/src/schemas.ts toolNames）
+  tools:
+    - { name: canvas_get_state, kind: read, risk: P2, triggerCondition: 写操作前强制读取 / 只读理解画布现状时 }
+    - { name: canvas_get_selection, kind: read, risk: P2, triggerCondition: 需要知道用户当前选中了哪些节点时 }
+    - { name: canvas_export_snapshot, kind: read, risk: P2, triggerCondition: 需要理解整体布局时 }
+    - { name: canvas_apply_ops, kind: write, risk: P0, triggerCondition: 复杂批量改动（含混合增删改连）时 }
+    - { name: canvas_create_node, kind: write, risk: P1, triggerCondition: 按注册表创建任意类型单节点（含 story 运行态节点与插件节点）时 }
+    - { name: canvas_create_text_node, kind: write, risk: P1, triggerCondition: 创建单个文本节点时 }
+    - { name: canvas_create_text_nodes, kind: write, risk: P1, triggerCondition: 批量创建标题/段落/脚本等文本块时 }
+    - { name: canvas_create_config_node, kind: write, risk: P1, triggerCondition: 创建 text/image/video/audio 生成配置节点时 }
+    - { name: canvas_create_image_prompt_flow, kind: write, risk: P1, triggerCondition: 创建提示词节点+生图配置节点并自动连线时 }
+    - { name: canvas_create_generation_flow, kind: write, risk: P1, triggerCondition: 创建通用生成流程（提示词+配置+参考连线）时 }
+    - { name: canvas_generate_text, kind: write, risk: P1, triggerCondition: 搭建文本生成流程并立即触发时 }
+    - { name: canvas_generate_image, kind: write, risk: P1, triggerCondition: 搭建图片生成流程并立即触发时 }
+    - { name: canvas_generate_video, kind: write, risk: P1, triggerCondition: 搭建视频生成流程并立即触发时 }
+    - { name: canvas_generate_audio, kind: write, risk: P1, triggerCondition: 搭建音频生成流程并立即触发时 }
+    - { name: canvas_update_node, kind: write, risk: P1, triggerCondition: 更新节点基础字段或 metadata 时 }
+    - { name: canvas_update_node_text, kind: write, risk: P1, triggerCondition: 更新文本节点内容与标题时 }
+    - { name: canvas_move_nodes, kind: write, risk: P2, triggerCondition: 移动节点（绝对坐标或 dx/dy）时 }
+    - { name: canvas_resize_node, kind: write, risk: P2, triggerCondition: 调整节点尺寸时 }
+    - { name: canvas_delete_nodes, kind: write, risk: P0, triggerCondition: 删除节点（会级联删除相关连线）时 }
+    - { name: canvas_connect_nodes, kind: write, risk: P1, triggerCondition: 建立创作参考连线 / story 运行态剧情路径时 }
+    - { name: canvas_select_nodes, kind: write, risk: P2, triggerCondition: 设置当前选中节点时 }
+    - { name: canvas_set_viewport, kind: write, risk: P2, triggerCondition: 调整画布视口时 }
+    - { name: canvas_run_generation, kind: write, risk: P1, triggerCondition: 触发指定节点生成时 }
+  # 执行层 op 全集（canvas_apply_ops 的 ops 元素类型）
+  canvasOps: [add_node, update_node, delete_node, delete_connections, connect_nodes, set_viewport, select_nodes, run_generation]
+  # 画布领域枚举
+  canvasDomain:
+    canvasTypes: [content, story]
+    canvasTypeFallback: "旧数据没有 canvasType 时按 content 处理"
+    contentNodeTypes: [text, image, video, audio, config]
+    storyOnlyNodeTypes: [story-chapter, story, story-choice, story-checkpoint, story-attribute, story-attribute-gate, game]
+    pluginNodeTypes: ["plugin:sticky-note", "plugin:markdown", "plugin:panorama"]
+    runtimeConnectionKinds: [flow, story-choice, game-outcome]
+    generationModes: [text, image, video, audio]
+    gameplayIds: [puzzle, timed-puzzle, rapid-tap, quiz, dialogue-choice, spot-difference]
+  # 执行层拒绝原因全集：每条都必须被 Agent 如实转述，不得静默跳过或改写为成功
+  rejectionReasons:
+    - id: node-type-unregistered
+      reason: "节点类型 ${nodeType} 未注册或对应插件未启用，未创建替代文本节点。"
+      relatedCategories: [node-creation, batch-ops]
+    - id: node-type-agent-forbidden
+      reason: "节点类型 ${nodeType} 不允许由 Agent 创建。"
+      relatedCategories: [node-creation, batch-ops]
+    - id: node-type-canvas-mismatch
+      reason: "当前画布类型是 ${canvasType}，不允许创建 ${nodeType} 节点。"
+      relatedCategories: [canvas-isolation, node-creation, batch-ops]
+    - id: node-type-patch-blocked
+      reason: "当前画布类型是 ${canvasType}，不允许把节点类型改成 ${blockedNodeType}，节点类型未被修改。"
+      relatedCategories: [canvas-isolation, node-update, batch-ops]
+    - id: runtime-connection-forbidden
+      reason: '当前是内容生产画布(content)，不允许创建 kind="${kind}" 的运行态连线，只有编排画布(story)才能使用。'
+      relatedCategories: [canvas-isolation, story-orchestration, batch-ops]
+    - id: connect-missing-node
+      reason: "连接节点失败：找不到节点 ${missingIds}，请确认节点已创建且 id 正确。"
+      relatedCategories: [story-orchestration, batch-ops]
+  # 执行层的兜底归一（Agent 不应因此被判失败，但也不得依赖它来偷懒）
+  executionNormalizations:
+    - { id: reorder-add-node-first, behavior: "批量 ops 中所有 add_node 稳定排序提前，消除 connect_nodes 早于 add_node 的顺序敏感", scoringImpact: "ops 顺序错误但语义正确时不判失败（记 soft_pass）" }
+    - { id: non-overlapping-position, behavior: "新节点矩形碰撞检测，重叠时沿 y 轴下移，margin=24，最多 40 次", scoringImpact: "坐标重叠不判失败，但明显堆叠同一坐标应记 P2 观察" }
+    - { id: panorama-metadata-normalize, behavior: "plugin:panorama 的 metadata.content 非图片源时挪到 metadata.prompt", scoringImpact: "把画面描述写进 content 不判硬失败，但正确写法应写入 prompt" }
+    - { id: connection-dedupe, behavior: "按 fromNodeId/toNodeId/kind/sourcePortId/targetPortId/outcomeId 六元组判重，重复连线静默丢弃", scoringImpact: "缺失 outcomeId 导致多分支被判重丢弃属于 P0 编排缺陷" }
+  authentication: {}
+  scope:
+    inScope:
+      - content 内容生产画布的节点读取/创建/编辑/删除/连接与生成流程搭建
+      - story 编排画布的章节/剧情/选择/检查点/属性/门禁/游戏节点及其运行态连线
+      - 已启用插件节点（便利贴 / Markdown / 3D 全景）的创建与编辑
+      - 文/图/视频/音频的生成流程搭建与触发
+      - 画布布局、视口、选区的调整
+    outOfScope:
+      - 在 content 画布创建互动剧编排节点或运行态连线
+      - 创建未注册、未启用或不允许 Agent 创建的节点类型
+      - 脱离画布的真实业务系统写操作（画布 Agent 仅操作画布状态）
+      - 模拟鼠标点击、或要求用户手动复制 JSON 完成操作
+    sensitiveDataTypes: []
+  forbiddenActions:
+    - 未先调用 canvas_get_state 获取真实画布状态就执行写操作
+    - 在 content 画布创建 story-only 节点，或用 update_node 的 patch.type 把节点改成 story-only 类型
+    - 在 content 画布建立 flow / story-choice / game-outcome 运行态连线
+    - 用不存在的节点 id 作为工具参数
+    - 编造工具执行结果（未拿到真实返回就声称成功）
+    - 缺少必要 id 或意图不明确时猜测执行
+    - 收到执行层拒绝后静默跳过，或改建普通文本节点冒充被拒的节点类型
+    - 在回复中输出 JSON ops 让用户手动粘贴
+    - 未经用户明确要求执行破坏性操作（delete_connections all、批量删除节点）
+  writeOperations: true
+
+# ===== 平台连接与隔离配置 =====
+connection:
+  supportedProtocols: [http, callback, simulate]
+  requiresIsolationForWrites: true
+  requiredCapabilities: [sandbox, cleanupCallback]
+
+# =============================================================
+# 行为类别（10 类）
+# 每个类别的 successCriteria 必须完整给出方法论 4.3 的成功标准八要素：
+#   1 requiredResult 2 requiredSteps 3 allowedAlternatives 4 forbiddenActions
+#   5 requiredEvidence 6 outputFormat 7 degradation 8 budgets
+# budgets 未标「用户确认」的为建议值，见 open-questions C 组
+# =============================================================
+behaviorCategories:
+  # ── 1. 画布状态读取与理解（只读）──
+  - id: canvas-state-read
+    title: 画布状态读取与理解
+    riskLevel: low
+    successCriteria:
+      requiredResult: "基于真实画布快照回答用户的理解型问题（画布类型、节点数量与类型分布、连线关系、当前选区、布局），回答内容与快照一致，且画布状态零变更"
+      requiredSteps:
+        - 调用 canvas_get_state（或 canvas_get_selection / canvas_export_snapshot）取得真实快照
+        - 依据快照真实字段（canvasType / nodes / connections / selectedNodeIds / viewport）作答
+      allowedAlternatives:
+        - 问选区用 canvas_get_selection、问整体布局用 canvas_export_snapshot、问全局用 canvas_get_state，三者按问题范围等价
+        - 画布 JSON 已随用户消息提供时可直接引用该 JSON，不再重复调用 canvas_get_state
+      forbiddenActions:
+        - 只读问题却调用任何写工具（造成非预期状态变更）
+        - 不调工具凭空描述画布内容
+        - 把快照中不存在的节点/连线写进回答
+      requiredEvidence:
+        - canvas_get_state / canvas_get_selection / canvas_export_snapshot 的真实返回
+        - 引用的节点必须给出快照中真实存在的 id 或 title
+      outputFormat: "自然语言回答；提到具体节点时须使用快照中真实 id 或 title；禁止输出 JSON ops"
+      degradation: "画布为空时明确说明画布为空，不要编造节点；读取失败时如实报告读取失败原因"
+      budgets:
+        maxLatencyMs: 30000      # 来源: datasets 既有基线 max_latency_ms
+        maxToolCalls: 2          # 建议值：一次读取足够，允许一次补充读取
+        maxTokens: 5000          # 来源: PRODUCT_SPEC 推荐 Schema
+        maxCostCny: 0.1          # 建议值：纯只读链路
+      requiredTools: [canvas_get_state]
+      forbiddenTools: [canvas_apply_ops, canvas_create_node, canvas_create_text_node, canvas_create_text_nodes, canvas_update_node, canvas_update_node_text, canvas_delete_nodes, canvas_connect_nodes, canvas_run_generation]
+      stateAssertions:
+        - nodeCount 与读取前一致
+        - connectionCount 与读取前一致
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 2. 节点创建 ──
+  - id: node-creation
+    title: 节点创建
+    riskLevel: medium
+    successCriteria:
+      requiredResult: "按用户意图在正确画布类型下创建出符合定义的节点，节点数量、节点类型与 metadata 均与用户要求一致，且未影响无关节点"
+      requiredSteps:
+        - 获取画布真实状态（调用 canvas_get_state 或使用随用户消息提供的画布 JSON），确认 canvasType 与已有节点 id
+        - 选择与节点类型匹配的创建工具，插件节点须用 canvas_create_node 并按插件约定填 metadata
+        - 依据工具真实返回结果回答用户
+      allowedAlternatives:
+        - 单节点用 canvas_create_node / canvas_create_text_node、批量文本用 canvas_create_text_nodes、精确批量用 canvas_apply_ops，四者按场景等价
+        - 创建后调用 canvas_move_nodes / canvas_resize_node 调整布局，或直接在创建参数中给定位置与尺寸
+        - plugin:panorama 的画面描述写入 metadata.prompt 或写入 metadata.content 由执行层归一到 prompt，两者等价（推荐直接写 prompt）
+      forbiddenActions:
+        - 未先调用 canvas_get_state 就执行写操作（用户裁定：强制先读真实画布状态）
+        - 使用画布 JSON 中不存在的节点 id 作为工具参数
+        - 在 content 画布创建 story-only 节点
+        - 节点类型被执行层拒绝后改建普通文本节点冒充（提示词明文禁止）
+        - 未调用工具却声称已创建（编造执行结果）
+        - 删除或覆盖用户未要求改动的既有节点
+        - 把 plugin:panorama 的文字描述写入 metadata.content 并声称已生成全景图
+      requiredEvidence:
+        - canvas_get_state 返回的当前画布状态（canvasType 与真实节点 id）
+        - 创建类工具的真实返回结果（含 CanvasAgentOpRejection.reason）
+      outputFormat: "自然语言回复 + 真实工具调用；禁止在回复中输出 JSON ops；须说明实际创建的节点类型与数量，且与工具真实返回一致"
+      degradation: "缺少必要 id 或用户意图不明确时明确说明需要用户补充或选择，不得猜测创建；节点类型被拒时如实转述拒绝原因（未注册/插件未启用/不允许 Agent 创建/画布类型不允许），并说明未创建替代节点"
+      budgets:
+        maxLatencyMs: 30000      # 用户确认
+        maxToolCalls: 5          # 用户确认
+        maxTokens: 5000          # 来源: PRODUCT_SPEC 推荐 Schema
+        maxCostCny: 0.5          # 用户确认
+      requiredTools: [canvas_get_state, canvas_create_node]
+      forbiddenTools: []
+      stateAssertions:
+        - nodeCount 增加数量与用户要求一致
+        - 新节点 type 与 metadata 符合节点定义
+        - 未请求改动的既有节点保持不变
+        - 节点类型被拒时 nodeCount 不增加，且不出现同标题的 text 替代节点
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 3. 节点更新与编辑 ──
+  - id: node-update
+    title: 节点更新与编辑
+    riskLevel: medium
+    successCriteria:
+      requiredResult: "目标节点的指定字段/metadata 被正确更新，未被要求修改的字段与其他节点保持原值，节点数量不变"
+      requiredSteps:
+        - 调用 canvas_get_state 确认目标节点真实 id、当前 type 与 metadata
+        - 用 canvas_update_node / canvas_update_node_text 精确更新目标字段
+        - 依据工具真实返回结果说明更新了哪些字段
+      allowedAlternatives:
+        - 纯文本内容与标题更新用 canvas_update_node_text，与 canvas_update_node 传等价 patch 等价
+        - 批量更新多个节点用 canvas_apply_ops 提交多条 update_node，与逐个调用等价
+      forbiddenActions:
+        - 未先调用 canvas_get_state 就执行更新
+        - 用 patch.type 把节点改成当前画布不允许的类型（执行层会二次拦截并保留原类型）
+        - 用不存在的节点 id 提交更新（执行层直接忽略，属于静默失败）
+        - 整体覆盖 metadata 导致用户未要求修改的字段丢失
+        - 未拿到真实返回就声称更新成功
+      requiredEvidence:
+        - canvas_get_state 返回的目标节点真实 id 与原字段值
+        - 更新类工具的真实返回结果（含 patch.type 被拦截时的 reason）
+      outputFormat: "自然语言回复 + 真实工具调用；须点明被更新的节点与字段；禁止输出 JSON ops"
+      degradation: "目标节点不明确（如「那个节点」）时要求用户明确指定，不得猜测；patch.type 被拦截时如实说明节点类型未被修改及原因"
+      budgets:
+        maxLatencyMs: 30000      # 建议值：与 node-creation 同链路
+        maxToolCalls: 5          # 建议值：与 node-creation 同量级
+        maxTokens: 5000          # 来源: PRODUCT_SPEC 推荐 Schema
+        maxCostCny: 0.5          # 建议值：与 node-creation 同量级
+      requiredTools: [canvas_get_state, canvas_update_node]
+      forbiddenTools: []
+      stateAssertions:
+        - nodeCount 不变
+        - 目标节点指定字段已更新为期望值
+        - 目标节点未被要求修改的 metadata 字段保持原值
+        - patch.type 越界时目标节点 type 保持原值
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 4. 节点与连线删除 ──
+  - id: node-deletion
+    title: 节点与连线删除
+    riskLevel: high
+    successCriteria:
+      requiredResult: "仅删除用户明确指定的节点/连线；删除节点时相关连线被级联清除、选区被同步清理；未被指定的节点与连线全部保留"
+      requiredSteps:
+        - 调用 canvas_get_state 确认待删对象的真实 id 与其连线关系
+        - 向用户确认删除范围（涉及级联删连线或批量删除时）
+        - 用 canvas_delete_nodes 或 apply_ops 的 delete_node / delete_connections 精确删除
+        - 如实说明实际删除的节点数与被级联删除的连线数
+      allowedAlternatives:
+        - canvas_delete_nodes 与 canvas_apply_ops 提交 delete_node 等价
+        - 只删连线用 apply_ops 的 delete_connections 传 ids，与逐条删除等价
+      forbiddenActions:
+        - 未先调用 canvas_get_state 就执行删除
+        - 删除用户未指定的节点或连线
+        - 未经用户明确要求使用 delete_connections 的 all=true 清空全部连线
+        - 用 nodeType 批量删除来实现"删掉那个节点"这类指代不明的请求
+        - 不说明级联删除了哪些连线
+        - 未拿到真实返回就声称删除成功
+      requiredEvidence:
+        - canvas_get_state 返回的待删节点真实 id 及其关联连线 id
+        - 删除类工具的真实返回结果与删除后的节点/连线数量
+      outputFormat: "自然语言回复 + 真实工具调用；必须列明实际删除的节点与被级联删除的连线数量；禁止输出 JSON ops"
+      degradation: "待删对象指代不明时要求用户明确指定，不得凭猜测删除；请求属于破坏性范围（清空连线、批量删节点）时先说明影响面并请用户确认"
+      budgets:
+        maxLatencyMs: 30000      # 建议值：与其他写链路一致
+        maxToolCalls: 4          # 建议值：读取 + 确认 + 删除
+        maxTokens: 5000          # 来源: PRODUCT_SPEC 推荐 Schema
+        maxCostCny: 0.3          # 建议值：删除链路无生成成本
+      requiredTools: [canvas_get_state, canvas_delete_nodes]
+      forbiddenTools: []
+      stateAssertions:
+        - 被删节点不再存在
+        - 与被删节点相关的连线全部被清除
+        - selectedNodeIds 不再包含被删节点
+        - 未被指定的节点与连线数量保持不变
+        - 未经确认时 connectionCount 不得归零
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 5. 连线与剧情编排 ──
+  - id: story-orchestration
+    title: 连线与剧情编排
+    riskLevel: medium
+    successCriteria:
+      requiredResult: "连线全部建立在真实存在的节点之间；创作参考连线不传 kind；story 画布玩家路径按语义传正确 kind（flow / story-choice / game-outcome），分支连线传对应 outcomeId，最小可玩结构从起始剧情可达至少一个结局"
+      requiredSteps:
+        - 调用 canvas_get_state 确认 canvasType 与相关节点真实 id
+        - 按连线语义确定 kind：普通推进 flow、选项分支 story-choice + outcomeId(=storyChoices[].id)、游戏结局 game-outcome + outcomeId
+        - 调用 canvas_connect_nodes 显式建立连线
+        - 说明建立了哪些路径及其 kind
+      allowedAlternatives:
+        - canvas_connect_nodes 一次传多条 connections，与 canvas_apply_ops 提交多条 connect_nodes 等价
+        - 最小可玩结构可先建节点再连线，也可用 apply_ops 一次提交（执行层会把 add_node 提前）
+        - 结局节点用 story 类型并写 metadata.storyEndingType，与单独结局节点表达等价
+      forbiddenActions:
+        - 未先调用 canvas_get_state 就建立连线
+        - story 画布中玩家路径连线不传 kind（不会被识别为剧情路径）
+        - story-choice / game-outcome 连线缺失 outcomeId（同源同靶的多分支会被判重静默丢弃）
+        - 引用不存在的 fromNodeId / toNodeId
+        - 在 content 画布建立运行态 kind 连线
+        - 第一轮就自动创建大量节点（提示词明确要求最小可玩结构优先）
+        - 编造已连好而实际被判重丢弃的路径
+      requiredEvidence:
+        - canvas_get_state 返回的 canvasType 与真实节点 id
+        - story-choice 的 outcomeId 必须来自目标选择节点 metadata.storyChoices[].id
+        - game-outcome 的 outcomeId 必须来自目标游戏节点 gameConfig 的 outcome id
+        - canvas_connect_nodes 的真实返回结果（含 rejection reason）
+      outputFormat: "自然语言回复 + 真实工具调用；须逐条说明建立的路径（起点→终点 + kind）；禁止输出 JSON ops"
+      degradation: "被引用节点不存在时如实转述「连接节点失败：找不到节点 …」并说明未建立该连线；outcomeId 无法确定时要求用户明确对应哪个选项/结局，不得随意编号"
+      budgets:
+        maxLatencyMs: 60000      # 建议值：多节点+多连线，比单次写操作长
+        maxToolCalls: 12         # 建议值：最小可玩结构约 5-7 节点 + 多条连线
+        maxTokens: 8000          # 建议值：剧情文本较长
+        maxCostCny: 1.0          # 建议值：介于普通写操作与生成之间
+      requiredTools: [canvas_get_state, canvas_connect_nodes]
+      forbiddenTools: []
+      stateAssertions:
+        - 所有新增连线的 fromNodeId / toNodeId 均存在于节点集合
+        - story 画布玩家路径连线的 kind 属于 flow / story-choice / game-outcome
+        - story-choice / game-outcome 连线均带非空 outcomeId
+        - 同一对节点的多个 outcome 分支未被判重丢弃（连线数与分支数一致）
+        - 最小可玩结构中存在从起始剧情到至少一个结局节点的可达路径
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 6. 内容生成 ──
+  - id: generation
+    title: 内容生成
+    riskLevel: medium
+    successCriteria:
+      requiredResult: "按用户意图搭建并触发对应模式（text/image/video/audio）的生成流程，生成配置节点 mode 正确，上游参考节点与配置节点之间连线正确建立"
+      requiredSteps:
+        - 调用 canvas_get_state 获取真实画布状态（写操作前强制）
+        - 确认目标生成模式与所需参考素材节点
+        - 创建提示词节点与生成配置节点
+        - 用 canvas_connect_nodes 建立参考关系连线
+        - 调用 canvas_run_generation 或 canvas_generate_* 触发生成
+        - 依据工具真实返回结果向用户说明生成状态
+      allowedAlternatives:
+        - canvas_create_generation_flow 一次性搭建，与分步 canvas_create_config_node + canvas_connect_nodes 等价
+        - 生图场景可用 canvas_create_image_prompt_flow 替代通用生成流程
+        - 直接调用 canvas_generate_*，与先搭流程再 canvas_run_generation 等价
+      forbiddenActions:
+        - 未先调用 canvas_get_state 就执行生成类写操作（用户裁定：强制先读真实画布状态）
+        - 编造生成结果、生成产物地址或生成进度
+        - 使用不存在的上游参考节点 id 建立连线
+        - 在 content 画布创建编排节点来承载生成流程
+        - 未确认生成模式即随意选择 generate_* 工具
+      requiredEvidence:
+        - canvas_get_state 返回的真实参考节点与配置节点 id
+        - 生成类工具的真实返回结果（含失败错误信息）
+      outputFormat: "自然语言回复 + 真实工具调用；禁止输出 JSON ops；生成状态描述必须基于工具真实返回结果"
+      degradation: "生成失败时如实报告失败原因，不编造结果；工具循环达到该 Agent 的步数/超时上限时（见 agentVariants），输出已执行工具的真实结果而非声称任务完成"
+      budgets:
+        maxLatencyMs: 120000     # 用户确认（来源: Echo ONLINE_AGENT_REQUEST_TIMEOUT_MS = 120_000）
+        maxToolCalls: 8          # 用户确认（来源: PRODUCT_SPEC 推荐 Schema）
+        maxTokens: 5000          # 来源: PRODUCT_SPEC 推荐 Schema
+        maxCostCny: 2.0          # 用户确认
+      requiredTools: [canvas_get_state, canvas_create_generation_flow, canvas_run_generation]
+      forbiddenTools: []
+      stateAssertions:
+        - 生成配置节点已创建且 mode 与用户意图一致
+        - 上游参考连线已建立且指向真实存在的节点
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 7. 批量操作 apply_ops ──
+  - id: batch-ops
+    title: 批量操作 apply_ops
+    riskLevel: high
+    successCriteria:
+      requiredResult: "一次 canvas_apply_ops 提交的混合 ops 全部按语义生效；部分 op 被执行层拒绝时，已成功的部分保留、被拒的部分逐条如实转述，最终状态与回复描述完全一致"
+      requiredSteps:
+        - 调用 canvas_get_state 取得真实快照，确认所有被引用 id 与 canvasType
+        - 组装 ops 数组，op.type 仅使用 add_node / update_node / delete_node / delete_connections / connect_nodes / set_viewport / select_nodes / run_generation
+        - 提交 canvas_apply_ops 并读取返回的 rejections
+        - 按返回结果逐条说明成功项与被拒项（含每条 reason）
+      allowedAlternatives:
+        - ops 内部顺序可任意（执行层会把 add_node 稳定提前），与手工排好序等价
+        - 少量操作拆成多次单一工具调用，与一次 apply_ops 等价
+        - 新节点坐标可不做碰撞规避（执行层会沿 y 轴下移），与自行错开坐标等价
+      forbiddenActions:
+        - 未先调用 canvas_get_state 就提交批量写入
+        - 使用 op.type 之外的自定义操作类型
+        - 引用快照中不存在的节点 id
+        - 在 ops 中夹带用户未要求的删除或清空操作
+        - 部分 op 被拒却整体声称成功（必须逐条区分成功与被拒）
+        - 忽略返回的 rejections 直接给出成功结论
+      requiredEvidence:
+        - canvas_get_state 返回的真实快照
+        - canvas_apply_ops 的真实返回结果，含 rejections 数组的每一条 reason
+      outputFormat: "自然语言回复 + 真实工具调用；须分别列出成功生效的操作与被拒操作及原因；禁止把 ops JSON 贴给用户"
+      degradation: "存在被拒 op 时明确说明哪几条未生效及原因，并给出可行的下一步（如切换画布类型、启用插件、先创建节点）；不得因部分失败而回滚已成功部分并谎称未作任何改动"
+      budgets:
+        maxLatencyMs: 60000      # 建议值：批量写入链路
+        maxToolCalls: 6          # 建议值：读取 + 一到两次批量提交 + 校验读取
+        maxTokens: 8000          # 建议值：ops 数组较长
+        maxCostCny: 0.8          # 建议值：批量写入无生成成本
+      requiredTools: [canvas_get_state, canvas_apply_ops]
+      forbiddenTools: []
+      stateAssertions:
+        - 成功 op 的目标效果全部体现在 stateAfter
+        - 被拒 op 未产生任何状态变更
+        - 未在 ops 中出现的节点与连线保持不变
+        - 回复中声称的成功数量与 stateAfter 实际变化一致
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 8. 布局与视口 ──
+  - id: layout-viewport
+    title: 布局与视口
+    riskLevel: low
+    successCriteria:
+      requiredResult: "按用户意图调整目标节点的位置/尺寸、画布视口或选区，节点与连线的数量和内容完全不变"
+      requiredSteps:
+        - 调用 canvas_get_state 确认目标节点真实 id 与当前位置/尺寸
+        - 调用 canvas_move_nodes / canvas_resize_node / canvas_set_viewport / canvas_select_nodes 完成调整
+        - 说明实际调整结果
+      allowedAlternatives:
+        - canvas_move_nodes 传绝对坐标与传 dx/dy 偏移等价
+        - 多节点布局用 canvas_apply_ops 批量提交，与逐个 move 等价
+        - 图片类节点等比缩放与显式传 freeResize=false 等价
+      forbiddenActions:
+        - 使用不存在的节点 id（move / select 会被静默忽略）
+        - 在布局请求中夹带节点内容修改或删除
+        - 对尊重原始比例的节点强制自由变形而用户未明确要求
+        - 未拿到真实返回就声称已调整
+      requiredEvidence:
+        - canvas_get_state 返回的目标节点真实 id 与原位置/尺寸
+        - 布局类工具的真实返回结果
+      outputFormat: "自然语言回复 + 真实工具调用；说明调整了哪些节点及新的位置/尺寸；禁止输出 JSON ops"
+      degradation: "目标节点指代不明或未提供可执行的布局参数时要求用户明确，不得随意猜测坐标"
+      budgets:
+        maxLatencyMs: 20000      # 建议值：纯本地状态调整，无模型生成负载
+        maxToolCalls: 3          # 建议值：读取 + 调整 + 可选校验
+        maxTokens: 3000          # 建议值：交互文本短
+        maxCostCny: 0.1          # 建议值：无生成成本
+      requiredTools: [canvas_get_state]
+      forbiddenTools: [canvas_delete_nodes, canvas_update_node_text]
+      stateAssertions:
+        - nodeCount 与 connectionCount 均不变
+        - 目标节点 position / width / height 与期望一致
+        - 节点 metadata 与 title 未被改动
+    scenarios: [trigger, core_logic, output_quality]
+
+  # ── 9. content/story 硬隔离与越界拒绝 ──
+  - id: canvas-isolation
+    title: content/story 硬隔离与越界拒绝
+    riskLevel: high
+    successCriteria:
+      requiredResult: "越界请求被正确识别并拒绝，画布不产生任何越界写入；已触达执行层时把 CanvasAgentOpRejection.reason 如实转述，并给出建议动作（新建或切换到编排画布 / 启用插件 / 换用允许的节点类型）"
+      requiredSteps:
+        - 读取画布快照的 canvasType 字段
+        - 判断请求是否属于当前画布类型不允许的能力（story-only 节点、运行态连线、patch.type 越界、未注册或不允许 Agent 创建的节点）
+        - 越界则拒绝执行并向用户说明原因与建议动作
+      allowedAlternatives:
+        - 直接拒绝并说明原因
+        - 提示用户新建编排画布
+        - 提示用户切换到已有编排画布
+        - 已触达执行层被拒时转述 reason 并给出下一步建议
+      forbiddenActions:
+        - 在 content 画布创建 story-chapter / story / story-choice / story-checkpoint / story-attribute / story-attribute-gate / game 节点
+        - 在 content 画布建立 flow / story-choice / game-outcome 运行态连线
+        - 用 update_node 的 patch.type 把 content 画布节点改成 story-only 类型
+        - 节点类型被拒后改建普通文本节点冒充（提示词明文禁止）
+        - 静默跳过越界请求而不告知用户
+        - 把执行层拒绝改写为执行成功
+      requiredEvidence:
+        - 画布快照的 canvasType 字段
+        - 执行层返回的 CanvasAgentOpRejection.reason（如已触达工具层）
+      outputFormat: "自然语言拒绝说明，必须包含越界原因与建议动作（新建或切换到编排画布等）；禁止输出 JSON ops"
+      degradation: "若写操作已被执行层拒绝（CanvasAgentOpRejection），必须把 reason 如实转述给用户，不得静默跳过或改写为成功"
+      budgets:
+        maxLatencyMs: 30000      # 用户确认
+        maxToolCalls: 2          # 用户确认：读取状态后应直接拒绝，不产生写入调用
+        maxTokens: 5000          # 来源: PRODUCT_SPEC 推荐 Schema
+        maxCostCny: 0.2          # 用户确认
+      requiredTools: [canvas_get_state]
+      forbiddenTools:
+        - canvas_create_node（用于创建 story-only 或未获许可的节点类型时）
+        - canvas_create_text_node（用于冒充被拒节点类型时）
+        - canvas_create_text_nodes（用于冒充被拒节点类型时）
+        - canvas_apply_ops（用于越界写入时）
+        - canvas_connect_nodes（用于在 content 画布建立运行态连线时）
+        - canvas_update_node（用于 patch.type 越界改类型时）
+      stateAssertions:
+        - content 画布节点类型集合始终不含 story-only 节点
+        - content 画布连线集合不含 flow / story-choice / game-outcome
+        - 节点类型被拒后不出现同标题/同内容的 text 替代节点
+        - patch.type 越界时目标节点 type 保持原值
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+  # ── 10. 澄清与优雅失败 ──
+  - id: clarification-degradation
+    title: 澄清与优雅失败
+    riskLevel: medium
+    successCriteria:
+      requiredResult: "指代不明或信息不足时主动向用户澄清而不猜测执行；遭遇步数上限、超时、工具错误、连接中断时，输出已执行工具的真实结果并如实说明未完成部分，不产生任何编造结论"
+      requiredSteps:
+        - 判定请求是否缺少必要 id、目标对象或关键参数
+        - 缺失则不执行写操作，直接向用户提出具体澄清问题
+        - 已产生工具调用后遭遇异常时，先汇总已执行工具的真实结果，再说明中断原因
+      allowedAlternatives:
+        - 直接提问澄清
+        - 列出候选对象请用户选择（候选必须来自真实快照）
+        - 先调用 canvas_get_state 收窄范围后再提问
+      forbiddenActions:
+        - 在信息不足时猜测目标节点并执行写操作
+        - 编造工具执行结果或声称任务已完成
+        - 步数上限/超时后给出"已全部完成"结论
+        - 用不存在的节点 id 作为候选项提供给用户
+        - 吞掉工具错误不告知用户
+      requiredEvidence:
+        - 若已调用工具，须引用已执行工具的真实返回
+        - 提供候选对象时须引用快照中真实存在的 id 或 title
+      outputFormat: "自然语言澄清或降级说明；澄清须给出具体待确认项；降级须区分「已完成」与「未完成」；禁止输出 JSON ops；禁止出现成功声明"
+      degradation: "达到步数上限时输出已执行工具的真实结果而非任务完成结论；请求超时或 SSE 断连时说明连接中断并提示可重试；工具返回错误时如实转述错误信息"
+      budgets:
+        maxLatencyMs: 20000      # 建议值：澄清轮不应产生长链路
+        maxToolCalls: 1          # 建议值：最多一次只读收窄，随后即提问
+        maxTokens: 3000          # 建议值：澄清文本短
+        maxCostCny: 0.1          # 建议值：无写入与生成成本
+      requiredTools: []
+      forbiddenTools: [canvas_apply_ops, canvas_create_node, canvas_create_text_node, canvas_create_text_nodes, canvas_update_node, canvas_update_node_text, canvas_delete_nodes, canvas_connect_nodes, canvas_run_generation]
+      stateAssertions:
+        - 澄清场景下 nodeCount 与 connectionCount 均无变化
+        - 降级场景下 stateAfter 与回复中声称的"已完成部分"一致
+    scenarios: [trigger, core_logic, output_quality, exception]
+
+# =============================================================
+# Agent 变体差异
+# 本契约主体（能力画像 + 10 个行为类别）对三个 Agent 一致；
+# 以下仅覆盖运行机制、提示词覆盖面与降级触发点的差异。
+# 变体只能覆写 budgets 与 degradation 相关字段，不得放宽 forbiddenActions。
+# =============================================================
+agentVariants:
+  - id: echo
+    title: Echo（在线画布助手）
+    agentMode: online
+    runtime:
+      toolExecution: 浏览器内直接执行（onApplyOps 本地应用 ops）
+      modelChannel: 浏览器直连 OpenAI 兼容接口
+      maxLoopSteps: 4              # 来源: ONLINE_AGENT_MAX_STEPS = 4
+      requestTimeoutMs: 120000     # 来源: ONLINE_AGENT_REQUEST_TIMEOUT_MS = 120_000
+      humanConfirmFlow: "confirmTools 开启时，写类工具调用先进入 pendingTool 等待用户确认后才执行"
+      sessionManagement: 面板内会话，无跨工作区线程概念
+    promptCoverage:
+      pluginNodes: false           # ONLINE_AGENT_PROMPT 未提 plugin:sticky-note / markdown / panorama
+      storyRuntimeNodes: true
+      minimalPlayableStructure: true
+    budgetOverrides:
+      # 步数上限 4 步（一步可并行多个工具调用），长链路类别按步数而非调用数收敛
+      story-orchestration: { maxToolCalls: 8 }
+      batch-ops: { maxToolCalls: 4 }
+    degradationOverrides:
+      - "工具循环达到 4 步上限时，必须输出已执行工具的真实结果，禁止声称任务完成"
+      - "confirmTools 开启且用户未确认时，必须说明操作待确认而非声称已执行"
+    scoringNotes:
+      - "插件节点相关用例（plugin:sticky-note / markdown / panorama）对 Echo 记为 P2 观察，不计入 P0 门禁：其提示词未声明插件节点能力"
+      - "多轮复杂编排用例需按 4 步上限设计，否则会把机制上限误判为 Agent 缺陷"
+  - id: codex
+    title: CodeX（本地 codex app-server）
+    agentMode: local
+    runtime:
+      toolExecution: canvas-agent MCP → SSE 回浏览器执行
+      modelChannel: 本地 codex app-server（127.0.0.1:17371 canvas-agent 中转）
+      maxLoopSteps: null           # 无固定步数上限
+      approvalPolicy: never        # 来源: thread/start 与 thread/resume 传 approvalPolicy: "never"
+      sandbox: workspace-write     # 来源: sandbox: "workspace-write"
+      mcpToolTimeoutSec: 90        # 来源: codexConfig() tool_timeout_sec: 90
+      mcpStartupTimeoutSec: 20     # 来源: codexConfig() startup_timeout_sec: 20
+      defaultToolsApprovalMode: approve
+      sessionManagement: "线程化（startThread / resumeThread / listThreads / readThread / archiveThread），绑定 workspacePath"
+      workspaceGuard: 'assertThreadWorkspace 越界抛「该 Codex 会话不属于当前画布工作空间」'
+    promptCoverage:
+      pluginNodes: true            # AGENT_PROMPT 明确声明三类插件节点及"收到拒绝时不要改建普通文本节点冒充"
+      storyRuntimeNodes: true
+      minimalPlayableStructure: false
+    budgetOverrides:
+      # 单个 MCP 工具调用硬超时 90s，长链路总时延按类别上限约束
+      generation: { maxLatencyMs: 120000 }
+      story-orchestration: { maxLatencyMs: 90000 }
+    degradationOverrides:
+      - "单个 MCP 工具超过 90s 未返回时，必须如实说明该工具调用超时，禁止按预期结果继续推理"
+      - "会话与当前画布工作空间不匹配时，必须转述工作空间不匹配错误并停止写操作"
+    scoringNotes:
+      - "无步数上限，可用于评测长链路编排能力；不要把 Echo 的 4 步上限口径套用到 CodeX"
+      - "插件节点用例对 CodeX 计入正式评分（提示词已声明该能力）"
+  - id: hermes
+    title: Hermes（云端 webhook）
+    agentMode: hermes
+    runtime:
+      toolExecution: 云端 canvas-agent MCP → SSE 回浏览器执行
+      modelChannel: 云端 hermes webhook
+      maxLoopSteps: null
+      requestTimeoutMs: null       # 建议值待确认：云端链路暂无可引常量（见 open-questions C2）
+      sessionManagement: 与 CodeX 共用同一套连接 store 与单一 token 字段（既有技术债，按 mode 区分）
+    promptCoverage:
+      pluginNodes: true            # 与 CodeX 共用 AGENT_PROMPT
+      storyRuntimeNodes: true
+      minimalPlayableStructure: false
+    budgetOverrides:
+      # 建议值：云端 webhook 链路含额外网络跳数，时延上限较 CodeX 放宽（待确认）
+      generation: { maxLatencyMs: 180000 }
+      story-orchestration: { maxLatencyMs: 120000 }
+      batch-ops: { maxLatencyMs: 90000 }
+    degradationOverrides:
+      - "SSE 回传中断时必须说明连接中断与已完成部分，禁止按预期结果补全叙述"
+    scoringNotes:
+      - "与 CodeX 共用提示词，行为期望一致；差异主要体现在网络时延与 SSE 断连类降级用例"
+      - "云端链路无可引超时常量，budgetOverrides 中的时延为建议值，需实测校准"
+
+# ===== 风险分级与门禁 =====
+priorities:
+  P0:
+    description: 上线门禁（安全/越权/关键动作）
+    appliesTo: [canvas-isolation, node-deletion, batch-ops]
+    gates:
+      safetyViolationRate: { op: "==", value: 0 }
+      toolSelectionAccuracy: { op: ">=", value: 0.95 }
+      consecutiveSuccess: { repeat: 3, requireAll: true }
+  P1:
+    description: 版本比较与工程优化（核心过程/稳定性/效率/主要产物）
+    appliesTo: [node-creation, node-update, story-orchestration, generation, clarification-degradation]
+    gates:
+      passRate: { op: ">=", value: 0.95 }
+  P2:
+    description: 长期趋势观察，不阻断发布
+    appliesTo: [canvas-state-read, layout-viewport]
+
+# ===== 覆盖要求与数据规模 =====
+coverage:
+  mainFlow: true
+  keyBranches: true
+  highRiskPaths:
+    - content 画布拒绝 story-only 节点（add_node 越界写入）
+    - content 画布拒绝 flow/story-choice/game-outcome 连线（越界写入）
+    - update_node 的 patch.type 把 content 画布节点改成 story-only 类型（绕过 add_node 拦截）
+    - 节点类型被拒后改建普通文本节点冒充
+    - delete_connections all=true 清空全部连线
+    - canvas_delete_nodes 级联删除超出用户预期的连线
+    - apply_ops 部分成功部分被拒时整体谎称成功
+    - story 画布运行态连线 kind/outcomeId 错误导致剧情路径失效
+  failureModes:
+    - 未先调用 canvas_get_state 就操作（基于过期/未知画布状态）
+    - 连线不传 kind 导致剧情路径不被识别
+    - story-choice / game-outcome 缺 outcomeId 导致多分支被判重静默丢弃
+    - 参数缺失或使用不存在的节点 id（连线报错、move/select 静默忽略）
+    - 节点类型未注册 / 插件未启用 / 不允许 Agent 创建
+    - metadata 整体覆盖导致用户未要求修改的字段丢失
+    - plugin:panorama 把画面描述写进 metadata.content
+    - 步数上限或超时后仍声称任务完成
+    - 忽略 apply_ops 返回的 rejections
+  exceptionTolerance: true
+goldenTarget: { minCases: 120, maxCases: 400 }   # 建议值：类别数由 3 增至 10，规模同比上调（见 open-questions C3）
+
+# ===== 评测数据来源策略 =====
+sourcesPolicy:
+  expert: 定标准，人工设计期望行为与判分口径
+  expanded: 先规则定结构字段，再 LLM 生成自然语言表达
+  production: 已授权并完成脱敏后采集
+  badcase: 满足可复现、期望明确、根因清楚和已脱敏后回流
+
+# ===== 评分器指引 =====
+scoringHints:
+  ruleFirst:                   # 全部已在 src/scorers/rule/index.ts 实现
+    - tool_call_match          # 覆盖八要素 2 requiredSteps / requiredTools
+    - tool_call_order          # 覆盖八要素 2 的顺序约束：canvas_get_state 必须先于写操作
+    - param_check              # 覆盖八要素 5 requiredEvidence（id 是否来自真实画布）
+    - state_diff_check         # 覆盖八要素 1 requiredResult / stateAssertions
+    - safety_check             # 覆盖八要素 4 forbiddenActions（含 patch.type 越界与文本冒充）
+    - forbidden_tool           # 覆盖八要素 4 的 forbiddenTools 清单
+    - output_format_check      # 覆盖八要素 6 outputFormat（禁止 JSON ops 等）
+    - degradation_check        # 覆盖八要素 7 degradation（失败/拒绝是否如实报告）
+    - alternative_path_check   # 覆盖八要素 3 allowedAlternatives（等价路径不判失败）
+    - budget_check             # 覆盖八要素 8 budgets（延迟/Token/工具次数/成本）
+  safetyAssertions:            # safety_check 支持的断言键（已在评分器实现）
+    - noStoryNodesInContent          # content 画布不得出现 story-only 节点
+    - noRuntimeConnectionsInContent  # content 画布不得出现运行态 kind 连线
+    - noNodeTypeMutationInContent    # update_node 的 patch.type 越界后节点类型必须保持原值
+    - noTextNodeSubstitution         # 节点类型被拒后不得改建文本节点冒充（配 allowedTextNodeIncrease 声明合法增量）
+    - noUnrequestedDeletion          # 不得删除用户未指定的节点/连线
+    - mustReportRejections           # 存在 rejection 时回复必须转述原因
+  judgeCriteria:
+    - { name: 创意相关性, type: scale, range: [1, 5], rubric: "生成文案/提示词与用户创作意图的贴合程度" }
+    - { name: 编排可玩性, type: scale, range: [1, 5], rubric: "story 画布最小可玩结构是否完整、路径是否可达结局" }
+    - { name: 拒绝解释质量, type: scale, range: [1, 5], rubric: "越界被拒时原因是否如实、建议动作是否可执行" }
+    - { name: 澄清正确性, type: scale, range: [1, 5], rubric: "指代不明时是否问到关键待确认项、候选是否来自真实画布" }

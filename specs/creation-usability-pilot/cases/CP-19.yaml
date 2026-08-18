@@ -1,0 +1,43 @@
+id: CP-19
+title: 鸽子涂鸦转写实灰鸽
+status: draft
+source: source-derived
+sourceTaskIds: ["092"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2i
+taskPattern: reference_image_edit
+supportStatus: approximate
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: pigeon_scribble.png
+    mediaType: image
+    sha256: a3f5e81c7e1fee26294da41841d062a8b33c10c1f37b10a23a1c1016d164a824
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: pigeon_scribble.png
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 以我上传的鸽子涂鸦为姿态和构图参考，生成一只写实灰鸽，背景简洁，保留侧身站立的意图。
+modelRouting:
+  imagePrimaryModel: 8zueiutezp
+  imagePrimaryLabel: 元宝-3.5
+  imageFallbackModel: vzajz9vl65
+  imageFallbackLabel: 多宝-5 Pro
+  maxAttemptsPerModel: 1
+  timeoutClassification: provider_timeout
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, image模式, 写实灰鸽, 侧身站立, 简洁背景]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接image链路]
+  degradation: 附件自动入画布或生成失败时如实说明。
+riskFlags: [composer_attachment_protocol_pending, approximate_edit]

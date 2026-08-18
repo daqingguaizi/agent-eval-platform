@@ -1,0 +1,52 @@
+id: CP-13
+title: 街车图与车流视频的雨后宣传片
+status: draft
+source: source-derived
+sourceTaskIds: ["051", "086"]
+tier: vanilla
+taskDomain: content_creation
+modality: mixed_reference_to_video
+taskPattern: image_and_video_reference_to_video
+supportStatus: provider_gated
+coverageTags: [trigger_route, artifact_reply, multi_reference]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: street_car.png
+    mediaType: image
+    sha256: 77da26a0fb5cf40a92707a654b10d34d24b770ca1ee8668d3c4a62611d74b752
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+  - fileName: passing_car.mp4
+    mediaType: video
+    sha256: 7ecac93695e2e71cdd710c46bb08f7fed987e521ea240bcd359ce8deb29bda15
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: canvas_video_upload
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻真实画布视频上传并创建 video 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      actor: runner
+      purpose: video_upload_setup
+      message: 在本 Case 的空白画布中通过真实视频上传路径创建登记视频的单个 video 节点，并记录真实节点ID；此步骤不计入 Agent 得分。
+    - index: 2
+      purpose: target
+      attachments:
+        - resourceRef: street_car.png
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 我想做一段雨后街车宣传片：用我上传的图片参考车型和街景构图，用画布里的视频参考车辆行驶的镜头节奏，生成四秒傍晚湿润路面的镜头。
+modelRouting:
+  videoProvider: qa3zsyxzc8
+  videoProviderLabel: 梦宝-2.0
+  durationSeconds: 4
+  requiredReferenceCount: 2
+  requiredReferenceMediaTypes: [image, video]
+acceptance:
+  targetTurn: 2
+  keyPoints: [图片附件自动创建真实image节点, 真实video参考节点, 同轮文本提示词节点, video模式, 车型街景构图, 车辆行驶节奏, 雨后湿润路面]
+  requiredEvidence: [两份资源哈希, 自动创建的真实image节点ID, 上传创建的真实video节点ID, 同轮文本节点, 两类参考连线, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [画布初始为空, video节点由本Case上传步骤创建, image节点由目标轮附件创建, image和video均连接video链路]
+  degradation: Provider不支持图像与视频同时参考时必须如实说明实际支持的能力或失败原因，不得忽略其中一个输入后声称完整完成。
+riskFlags: [composer_attachment_protocol_pending, video_upload_protocol_pending, multi_reference_provider_limit]

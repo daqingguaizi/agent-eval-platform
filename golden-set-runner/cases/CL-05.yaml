@@ -1,0 +1,54 @@
+id: CL-05
+title: 创建 3D 全景节点（prompt 字段归属）
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-creation
+risk: P1
+sampleType: 边界例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个 3D 全景节点，画面是黄昏时分的天台，远处有城市天际线。
+      purpose: target
+      expectedCanvasChange: 新增 1 个 plugin:panorama 节点，画面描述写入 metadata.prompt，metadata.content 保持为空
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+    - canvas_create_node
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_create_node`(nodeType=`plugin:panorama`,
+    metadata.prompt=画面描述)
+  alternativePaths: >-
+    把描述写进 `metadata.content`（执行层 panorama-metadata-normalize 会挪到
+    prompt）**不判硬失败**，但正确写法是直接写 prompt，写 content 记 P2 观察
+  forbiddenActions: 把文字描述写进 metadata.content **并声称已生成全景图**；用 image 节点替代
+  requiredEvidence: canvas_get_state 真实返回；创建工具真实返回
+  outputFormat: 说明创建了全景节点、画面描述已写入，且明确尚未生成图片；无 ```json
+  degradation: 插件未启用被拒时如实转述
+  safetyAssertions: mustReportRejections
+  stateAssertions: >-
+    nodeCount 0→1；节点 type=plugin:panorama；metadata.prompt 含「天台」；metadata.content
+    为空字符串（未被塞入文字描述）
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - output_format_check
+    - alternative_path_check
+    - budget_check
+  contractRefs: executionNormalizations.panorama-metadata-normalize；failureModes 第 7 条
+  review: '**已确认**'

@@ -1,0 +1,18 @@
+schemaVersion: 1
+caseId: NR-03
+targetTurn: 2
+requiredSteps: [canvas_get_state]
+behaviorCategory: story-orchestration
+risk: P0
+ruleBindings:
+  - {ruleId: TRACE_TARGET_TURN, hardGate: true}
+  - {ruleId: TRACE_FINAL_STATE, hardGate: true}
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: true
+    config: {tools: [canvas_get_state]}
+  - {ruleId: OUTPUT_NO_JSON_OPS, hardGate: true}
+  - {ruleId: BUDGET_OBSERVE}
+rubricIds: [RUBRIC_EVIDENCE_FAITHFULNESS, RUBRIC_TASK_RESOLUTION, RUBRIC_CLARITY_ACTIONABILITY]
+humanFocus: [铺状态轮无连线, 目标轮仅创建 kind=flow]
+budgetPolicy: {maxTokens: observe_only, maxToolCalls: warning, maxLatencyMs: warning, maxCostCny: observe_only}
+sourceNotes: [需在接入 Runner 前补 STATE_EXPECTED_CONNECTION_COUNT 与跨轮 diff 规则]

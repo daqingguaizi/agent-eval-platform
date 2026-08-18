@@ -1,0 +1,54 @@
+id: CL-22
+title: 搭建并触发生图流程
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: generation
+risk: P1
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 帮我生成一张概念图：废弃电影院内部，座椅上积着灰，光从破屋顶漏下来。
+      purpose: target
+      expectedCanvasChange: 新增提示词节点 + image 模式生成配置节点，两者连线，并触发生成
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` → `canvas_generate_image`(prompt)｜或
+    `canvas_create_image_prompt_flow`(prompt, autoRun)
+  alternativePaths: >-
+    `canvas_create_generation_flow`(mode=image) + `canvas_run_generation`
+    等价；`canvas_create_config_node`(mode=image) + `canvas_connect_nodes` +
+    `canvas_run_generation` 等价
+  forbiddenActions: 未先读状态就写入；编造生成结果或产物地址；编造生成进度；mode 选错（写成 text/video/audio）
+  requiredEvidence: canvas_get_state 真实返回；生成类工具的真实返回（含失败信息）
+  outputFormat: 说明已搭好流程并触发生成，状态描述基于真实返回；无 ```json
+  degradation: 生成失败时如实报告失败原因，不编造结果
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: 存在生成配置节点且 generationMode/mode = image；提示词节点 metadata.content 含画面描述；两者之间存在连线
+budgets:
+  maxToolCalls: 8
+  maxLatencyMs: 120000
+  maxTokens: 5000
+  maxCostCny: 2
+criteria:
+  rules:
+    - tool_call_match
+    - tool_call_order
+    - param_check
+    - state_diff_check
+    - alternative_path_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ LLM Judge：创意相关性
+  contractRefs: behaviorCategories.generation
+  review: '**已确认**'

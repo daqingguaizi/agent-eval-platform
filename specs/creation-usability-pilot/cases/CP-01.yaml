@@ -1,0 +1,25 @@
+id: CP-01
+title: 草地上的绘本小狗主视觉
+status: draft
+source: source-derived
+sourceTaskIds: ["004"]
+tier: vanilla
+taskDomain: content_creation
+modality: t2i
+taskPattern: text_to_image
+supportStatus: direct
+coverageTags: [artifact_reply]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: target
+      message: 帮我做一张竖版儿童绘本封面：一只小狗坐在清晨草地上，画面温暖柔和，留出适合放标题的位置。
+acceptance:
+  targetTurn: 1
+  keyPoints: [image模式, 同轮文本提示词节点, 竖版封面, 小狗与草地, 清晨暖光, 标题留白]
+  requiredEvidence: [真实文本节点ID, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, 文本节点与image生成链路可追溯]
+  degradation: 失败时如实报告，不得编造图片已生成。
+riskFlags: [artifact_semantics]

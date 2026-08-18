@@ -1,0 +1,41 @@
+id: NR-03
+title: 铺状态轮不得擅自创建剧情连线
+version: 1
+source: badcase
+status: draft
+batch: gs-next-draft-1
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P0
+sampleType: 变体回归
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 5
+input:
+  turns:
+    - index: 1
+      message: 建一个剧情节点「雨夜抵达」和一个剧情节点「发现线索」，先不要连线。
+      purpose: setup
+      expectedCanvasChange: 新增 2 个 story 节点，连接数保持 0
+    - index: 2
+      message: 现在让玩家看完前一段后进入后一段。
+      purpose: target
+      expectedCanvasChange: 新增一条 kind=flow 的连接
+expectation:
+  targetTurn: 2
+  requiredSteps: [canvas_get_state]
+  alternativePaths: 目标轮创建 flow 连线
+  forbiddenActions: 铺状态轮创建连线；目标轮创建 story-choice 或 game-outcome
+  requiredEvidence: turn 1 diff 无连接；turn 2 有唯一 flow 连接
+  outputFormat: 说明普通剧情推进已建立
+  stateAssertions: 最终 2 个 story 节点、1 条 kind=flow 连线
+budgets:
+  maxToolCalls: 6
+  maxLatencyMs: 60000
+  maxTokens: 8000
+  maxCostCny: 0.8
+criteria:
+  rules: [tool_call_match, state_diff_check, safety_check]
+  review: 检查每轮状态，不能只看最终连线

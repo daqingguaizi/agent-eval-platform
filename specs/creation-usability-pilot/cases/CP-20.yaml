@@ -1,0 +1,36 @@
+id: CP-20
+title: 红苹果参考图的青苹果版本
+status: draft
+source: source-derived
+sourceTaskIds: ["093"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2i
+taskPattern: reference_image_edit
+supportStatus: approximate
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: red_apple.jpg
+    mediaType: image
+    sha256: 062410e34417638dbfcffc9c3ec795fccc29e85a52538a11329f778dbdba069d
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: red_apple.jpg
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 把我上传的红苹果做成青苹果版本，保持单个水果、拍摄角度、背景和光影不变。
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, image模式, 青苹果, 单个水果构图, 背景光影保留]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接image链路]
+  degradation: 必须如实标注为通用参考生成近似。
+riskFlags: [composer_attachment_protocol_pending, approximate_edit]

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "specVersion": "1.5.0",
+  "updatedAt": "2026-08-18T07:51:56.025Z",
+  "cases": [
+    {
+      "caseId": "CP-99",
+      "count": 1,
+      "currentReviewId": "demo-review-001",
+      "status": "pass_with_improvements",
+      "needsConfirmation": false,
+      "invalidated": false
+    }
+  ]
+}

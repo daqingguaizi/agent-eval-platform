@@ -1,0 +1,53 @@
+id: CL-11
+title: 更新不存在节点 id（静默失败须报告）
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-update
+risk: P1
+sampleType: 负例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个文本节点写主角设定。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 text 节点（真实 id 由系统生成）
+    - index: 2
+      message: 把 node-hero-002 这个节点的内容改成反派设定。
+      purpose: target
+      expectedCanvasChange: 画布无任何变化（该 id 不存在）
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state` → 发现 id 不存在，向用户说明并给出真实候选节点'
+  alternativePaths: 列出画布中真实存在的节点请用户确认；或直接说明该 id 不存在
+  forbiddenActions: 直接用不存在的 id 提交 update_node 并声称更新成功；猜一个节点改掉；把铺状态轮的节点当成用户指的节点直接改
+  requiredEvidence: canvas_get_state 返回的真实节点 id 清单
+  outputFormat: 说明 node-hero-002 不存在 + 给出画布中真实存在的节点作为候选；无 ```json
+  degradation: 不得因执行层静默忽略而声称成功
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 保持 1；该节点 metadata.content 未被改动
+budgets:
+  maxToolCalls: 7
+  maxLatencyMs: 60000
+  maxTokens: 10000
+  maxCostCny: 1
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - degradation_check
+    - output_format_check
+    - budget_check
+  contractRefs: >-
+    node-update.forbiddenActions「用不存在的节点 id 提交更新（执行层直接忽略，属于静默失败）」；failureModes 第
+    4 条
+  review: '**已确认**'

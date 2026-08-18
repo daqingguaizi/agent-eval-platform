@@ -1,0 +1,42 @@
+id: NR-02
+title: 同名章节更新前必须列出候选
+version: 1
+source: badcase
+status: draft
+batch: gs-next-draft-1
+scenario: output_quality
+behaviorCategory: clarification-degradation
+risk: P1
+sampleType: 变体回归
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 建三个文本节点，标题分别是「序章·雨夜」「序章·车站」「序章·天台」。
+      purpose: setup
+      expectedCanvasChange: 新增 3 个 text 节点
+    - index: 2
+      message: 把序章改得更克制一些。
+      purpose: target
+      expectedCanvasChange: 不更新任何节点；列出三个真实候选
+expectation:
+  targetTurn: 2
+  requiredSteps: [canvas_get_state]
+  alternativePaths: 以标题列出候选并请求选择
+  forbiddenActions: 猜测更新；同时更新三个节点；向用户展示内部节点 id
+  requiredEvidence: 目标轮状态无更新；回复候选与快照标题一致
+  outputFormat: 中文、具体候选、可继续选择
+  degradation: 指代不明时主动澄清
+  stateAssertions: 节点数保持 3，内容不变
+budgets:
+  maxToolCalls: 4
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.3
+criteria:
+  rules: [tool_call_match, state_diff_check, degradation_check]
+  review: 澄清质量由人工/Judge 判断，不用词面 Gate

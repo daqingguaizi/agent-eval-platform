@@ -1,0 +1,523 @@
+{
+  "schemaVersion": 1,
+  "sourceDirectory": "${PILOT_RESOURCE_DIR}",
+  "copyPolicy": "reference_only_no_binary_copy",
+  "bindingStatus": "runner_input_protocol_unverified",
+  "resources": [
+    {
+      "fileName": "abnormal_hands.png",
+      "mediaType": "image",
+      "sha256": "17ca71c061a8fe8d261006903c960c125ff7fbed33a01a00c6dd7e2407a54abc",
+      "sourceTaskIds": [
+        "161"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "bareheaded_man.png",
+      "mediaType": "image",
+      "sha256": "07d6c18a83692ec207be14cb11c5f986906303f49587c6538b1e007df039dcba",
+      "sourceTaskIds": [
+        "094",
+        "175"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "baseball_game.mp4",
+      "mediaType": "video",
+      "sha256": "aa4c30a5421822418a349c7982d1528441a2d9382f88215290a8966f3ee80fb6",
+      "sourceTaskIds": [
+        "197"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "budapest_city.jpg",
+      "mediaType": "image",
+      "sha256": "79538bbb8d7aee4bfb35ae768982b0d5b835728d5f563f71bb22368d638b584b",
+      "sourceTaskIds": [
+        "049",
+        "081",
+        "114"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "chinese_calligraphy.jpg",
+      "mediaType": "image",
+      "sha256": "dbfeb4d2355a919d4d8cf099b545c75ef8c260188b253bdf044239f8ca5494d9",
+      "sourceTaskIds": [
+        "096"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "colorful_logo.png",
+      "mediaType": "image",
+      "sha256": "cd785fe4ad52594e5e2787b643ee1222415b301d44a477074402a3aceaf1a0b5",
+      "sourceTaskIds": [
+        "095",
+        "150"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "cosmetic_product.jpg",
+      "mediaType": "image",
+      "sha256": "d57684eb91e81573cf42ef0415cc8e7a09c2d58a587ab55a70808b855a1ff2c0",
+      "sourceTaskIds": [
+        "171"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "dish_table.png",
+      "mediaType": "image",
+      "sha256": "5db0d279451fb04e45ed07b8175f3e31efc00865814e8cb6d22bd41242f00e4e",
+      "sourceTaskIds": [
+        "060",
+        "061",
+        "062",
+        "063",
+        "064",
+        "121",
+        "124",
+        "152"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "elon_musk.jpg",
+      "mediaType": "image",
+      "sha256": "6736b21042299eb8ce62cb460def6a9f3158e4054012f23393baaa07b11e7388",
+      "sourceTaskIds": [
+        "168"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "flower_scribble.jpg",
+      "mediaType": "image",
+      "sha256": "09cbad214f41bda502db3fde8c7cfd2dab16dcdbc80e88bf992290e888d86419",
+      "sourceTaskIds": [
+        "091",
+        "154"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "glacier_iceberg.jpg",
+      "mediaType": "image",
+      "sha256": "a0b19109e0e70a047b8c83ac993bd0af235a0c7bbc458818aa59659b9ec98e48",
+      "sourceTaskIds": [],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "jacket_man.jpg",
+      "mediaType": "image",
+      "sha256": "3d17a63e10cf71d2e9b9405a7128025adc909c42997daa8710e9461e68589041",
+      "sourceTaskIds": [
+        "045",
+        "078",
+        "134",
+        "172"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "large_castle.png",
+      "mediaType": "image",
+      "sha256": "33c3c592f80a12a93e4e7f6eb3c42776a9d87b507bb79855506ccb0cefb1e6da",
+      "sourceTaskIds": [
+        "046",
+        "075",
+        "131",
+        "145",
+        "160",
+        "164"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "large_grassland.png",
+      "mediaType": "image",
+      "sha256": "0bd66d72316835248b7bec9a80df5233568737bd6ec38421d8f9f2c059204e5e",
+      "sourceTaskIds": [
+        "055",
+        "056",
+        "057",
+        "058",
+        "059",
+        "119",
+        "155"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "lovely_man.jpg",
+      "mediaType": "image",
+      "sha256": "1dc50759ebea8fec1af0e1c9f18870888c354ca68032ef05592c44327d9c2427",
+      "sourceTaskIds": [
+        "170"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "male_idol.mp4",
+      "mediaType": "video",
+      "sha256": "0af5829fe6b5c86b72797f0c9f319af45ec0e7675cf4700693e5ae2f9122ad81",
+      "sourceTaskIds": [
+        "118",
+        "186",
+        "187",
+        "188",
+        "200"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "many_people.png",
+      "mediaType": "image",
+      "sha256": "1520b58484b1d412ff837ed8d0f3db3f3708a99837becb83fd7a27a4e46661ce",
+      "sourceTaskIds": [
+        "054",
+        "083"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "marble_statue.jpg",
+      "mediaType": "image",
+      "sha256": "67d42e770e11bae20323ee7dd126ca25704681a2f060d0d9adbe6d610349be9d",
+      "sourceTaskIds": [],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "motorbike_man.png",
+      "mediaType": "image",
+      "sha256": "a5d2bed389f389a337330b0a93c6dbee261015d472c6c33cdec715e963dca5a7",
+      "sourceTaskIds": [
+        "052"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "mountain_stream.png",
+      "mediaType": "image",
+      "sha256": "044420fcb14b58215fd8ee10b790ce9825a5c81f0fc9392689452d371caaf93a",
+      "sourceTaskIds": [
+        "065",
+        "066",
+        "067",
+        "068",
+        "069",
+        "122",
+        "151"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "old_photo.jpg",
+      "mediaType": "image",
+      "sha256": "0a038fd96d290a8c25e3b772a038d376ef1f75499f37b2ac572c776b12d4b802",
+      "sourceTaskIds": [
+        "162",
+        "194"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "passing_car.mp4",
+      "mediaType": "video",
+      "sha256": "7ecac93695e2e71cdd710c46bb08f7fed987e521ea240bcd359ce8deb29bda15",
+      "sourceTaskIds": [
+        "086",
+        "199"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "pigeon_scribble.png",
+      "mediaType": "image",
+      "sha256": "a3f5e81c7e1fee26294da41841d062a8b33c10c1f37b10a23a1c1016d164a824",
+      "sourceTaskIds": [
+        "092",
+        "136"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "play_guitar.jpg",
+      "mediaType": "image",
+      "sha256": "535b426bb318ed3f6cddc26980afa29db0573426cddae1d198c5272e4e33d65e",
+      "sourceTaskIds": [
+        "077",
+        "120",
+        "133",
+        "146",
+        "156"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "pour_water.mp4",
+      "mediaType": "video",
+      "sha256": "20a23b4ae5e867972ff1399c705947d76d142d1b3c78a6235a092e03abe57a58",
+      "sourceTaskIds": [
+        "198"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "president_trump.jpg",
+      "mediaType": "image",
+      "sha256": "493a3909b4ef58c8d40d7098acb86884aebf693a32518d88aef7f267fede3ec3",
+      "sourceTaskIds": [
+        "050",
+        "097",
+        "099",
+        "115",
+        "147",
+        "180",
+        "189"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "red_apple.jpg",
+      "mediaType": "image",
+      "sha256": "062410e34417638dbfcffc9c3ec795fccc29e85a52538a11329f778dbdba069d",
+      "sourceTaskIds": [
+        "093"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "red_bridge.jpg",
+      "mediaType": "image",
+      "sha256": "a3012c5fcac1d4dcfcaeeb005ab8134cc53b4ebcad90cc39f5c7baff40eade69",
+      "sourceTaskIds": [
+        "176",
+        "181"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "single_letter.jpg",
+      "mediaType": "image",
+      "sha256": "c2efb3900c991aea894a2f30a0ee4d79814b4108eca621a9fd3491cbe853172c",
+      "sourceTaskIds": [],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "speaking_man.mp4",
+      "mediaType": "video",
+      "sha256": "56da682c01977078301209a677ad5bc2547b093deac7e5e011bc2a340e53c09d",
+      "sourceTaskIds": [
+        "185",
+        "196"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "standing_cat.jpg",
+      "mediaType": "image",
+      "sha256": "d2298d3fa679c0ee3bc79e4b867dc6d3f85c32b5d03dd0c3c5c694cecb768bc5",
+      "sourceTaskIds": [
+        "047",
+        "090",
+        "135"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "street_car.png",
+      "mediaType": "image",
+      "sha256": "77da26a0fb5cf40a92707a654b10d34d24b770ca1ee8668d3c4a62611d74b752",
+      "sourceTaskIds": [
+        "051",
+        "070",
+        "071",
+        "072",
+        "073",
+        "074",
+        "108",
+        "116",
+        "123",
+        "157"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "taylor_swift.mp4",
+      "mediaType": "video",
+      "sha256": "c20ad0ea7c1eb0983060125a8da43bc7bbc6d34a3670f94b34806259a6156239",
+      "sourceTaskIds": [
+        "085",
+        "117",
+        "182"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "toy_dog.jpg",
+      "mediaType": "image",
+      "sha256": "c1290889b6cbde516e74de290f4e8cfa42b7c130b5b457001bedfd5218ac398d",
+      "sourceTaskIds": [
+        "089",
+        "165"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "two_babies.mp4",
+      "mediaType": "video",
+      "sha256": "ec3808dc0be4e4f637d2589866fb008dc1492e4691b6575d132d9b86d7cb0e75",
+      "sourceTaskIds": [
+        "195"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "canvas_video_upload",
+      "runnerInputPrerequisite": "Runner 必须复刻真实画布视频上传并创建 video 节点的协议。"
+    },
+    {
+      "fileName": "warm_bedroom.jpg",
+      "mediaType": "image",
+      "sha256": "854a9ad08b7b7ca6772fd8b8c37f47f0619585380d6c50092a3ad7f255a0fcb6",
+      "sourceTaskIds": [
+        "048",
+        "076",
+        "084",
+        "107",
+        "132",
+        "192"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "watermarked_photo.png",
+      "mediaType": "image",
+      "sha256": "f813de654a64d09c196ed05cf41c3d305d225b11074d083e7dd32c6d6a5f4cc0",
+      "sourceTaskIds": [
+        "179"
+      ],
+      "suitability": "restricted_source_content",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "woman_photo.jpg",
+      "mediaType": "image",
+      "sha256": "18eae73ddd9e907b4b1b223ce96ed6cec6e61642ad1890cccf78405fd91fa2ad",
+      "sourceTaskIds": [
+        "098",
+        "100",
+        "109",
+        "110",
+        "137",
+        "138",
+        "148",
+        "158",
+        "159"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "yellow_race.png",
+      "mediaType": "image",
+      "sha256": "e3142218f7a4a8aa8167318d8cc6dcd15c646365e2d660f1d9b97d1fae0436aa",
+      "sourceTaskIds": [
+        "166"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    },
+    {
+      "fileName": "young_man.jpg",
+      "mediaType": "image",
+      "sha256": "b61ca5f579f3d8aafb2a35526660ce7536a9d985b270d13512b9573621509d94",
+      "sourceTaskIds": [
+        "053",
+        "082",
+        "173"
+      ],
+      "suitability": "input_candidate",
+      "inputProtocol": "agent_composer_image_attachment",
+      "runnerInputPrerequisite": "Runner 必须复刻最新产品的图片附件自动入画布协议。"
+    }
+  ]
+}

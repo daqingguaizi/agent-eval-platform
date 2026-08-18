@@ -1,0 +1,21 @@
+{
+  "id": "demo-review-001",
+  "reviewerId": "demo-reviewer",
+  "status": "pass_with_improvements",
+  "scores": {
+    "executionEvidence": 5,
+    "taskOrchestration": 4,
+    "canvasUsability": 5,
+    "artifactQuality": 4,
+    "reliabilityBoundary": 5
+  },
+  "evidence": [
+    { "path": "CP-99/result.json", "label": "演示运行结果" },
+    { "path": "CP-99/evidence/canvas-snapshot.json", "label": "演示画布快照" }
+  ],
+  "attributions": [],
+  "notes": "演示评审：结构和执行完整，建议后续复核产物细节。",
+  "recommendation": "保留当前节点结构，并在真实评测中补充媒体质量复核。",
+  "createdAt": "2026-08-18T00:00:00.000Z",
+  "isCurrent": true
+}

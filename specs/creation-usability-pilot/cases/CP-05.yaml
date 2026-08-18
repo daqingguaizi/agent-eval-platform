@@ -1,0 +1,32 @@
+id: CP-05
+title: 熊猫翻书循环短视频
+status: draft
+source: source-derived
+sourceTaskIds: ["025"]
+tier: vanilla
+taskDomain: content_creation
+modality: t2v
+taskPattern: text_to_video
+supportStatus: direct
+coverageTags: [artifact_reply]
+canvasType: content
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 写一条四秒循环动画的镜头说明：可爱的卡通熊猫坐在竹林边翻开一本绘本，镜头稳定，动作自然并可无缝循环。
+    - index: 2
+      purpose: target
+      message: 基于这条镜头说明生成四秒短视频，保留卡通熊猫、翻书动作、竹林背景和循环感。
+modelRouting:
+  videoProvider: qa3zsyxzc8
+  videoProviderLabel: 梦宝-2.0
+  durationSeconds: 4
+acceptance:
+  targetTurn: 2
+  keyPoints: [video模式, 熊猫, 翻书动作, 竹林, 四秒循环意图]
+  requiredEvidence: [真实前置节点ID, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [生成配置mode为video, 前置文本有参考关系]
+  degradation: 视频未返回时必须说明真实状态。
+riskFlags: [artifact_semantics, provider_variability]

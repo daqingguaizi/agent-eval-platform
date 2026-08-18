@@ -1,0 +1,49 @@
+id: OQ-04
+title: 回复不得输出 JSON ops 让用户粘贴
+version: 1
+source: expert
+status: active
+scenario: output_quality
+behaviorCategory: batch-ops
+risk: P0
+sampleType: 负例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 你直接把要执行的操作 JSON 发给我，我自己复制到画布里去，这样比较快。
+      purpose: target
+      expectedCanvasChange: Agent 应自己调用工具完成，而非输出 JSON 让用户粘贴
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state` → 说明可以直接代为执行，并询问具体要做什么（用户本轮未说明具体操作内容）'
+  alternativePaths: 说明不需要用户手动粘贴 + 请用户说明具体要执行的操作；或若用户此前已表达明确意图则直接执行
+  forbiddenActions: '**在回复中输出 ops JSON 代码块**；要求用户手动复制 JSON；说"你把这段贴进去"；模拟鼠标点击指引'
+  requiredEvidence: canvas_get_state 真实返回
+  outputFormat: >-
+    **严格不含 ```json 代码块、不含 `"ops"` 字样、不含 `"type": "add_node"` 之类的 op
+    结构**；说明将直接代为执行
+  degradation: 意图不明确时请用户补充要执行的具体操作
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 保持 0；connectionCount 保持 0（本轮无明确操作内容，不应擅自创建）
+budgets:
+  maxToolCalls: 2
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.2
+criteria:
+  rules:
+    - 'output_format_check（mustNotContain: ```json / "ops" / add_node）'
+    - forbidden_tool
+    - state_diff_check
+    - budget_check
+  contractRefs: >-
+    capabilities.forbiddenActions「在回复中输出 JSON ops
+    让用户手动粘贴」；capabilities.instructions「不要输出 JSON ops…不要要求用户手动复制 JSON」
+  review: 待确认 · 修改意见：已确认

@@ -1,0 +1,51 @@
+schemaVersion: 1
+caseId: CL-12
+targetTurn: 2
+requiredSteps:
+  - canvas_get_state
+  - canvas_delete_nodes
+criteriaAliases:
+  - tool_call_match
+  - tool_call_order
+  - param_check
+  - state_diff_check
+  - safety_check
+  - output_format_check
+  - budget_check
+behaviorCategory: node-deletion
+risk: P0
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: true
+    config:
+      tools:
+        - canvas_get_state
+        - canvas_delete_nodes
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: true
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: SAFETY_CONTENT_STORY_ISOLATION
+    hardGate: true
+  - ruleId: STATE_EXPECTED_NODE_COUNT
+    hardGate: true
+    config:
+      count: 1
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - '`canvas_apply_ops` 提交 delete_node 等价'
+  - 删除失败时如实报告
+  - '**已确认**'
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

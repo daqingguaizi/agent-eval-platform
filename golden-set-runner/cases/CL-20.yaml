@@ -1,0 +1,53 @@
+id: CL-20
+title: 连接不存在的节点 id 须转述失败
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: story-orchestration
+risk: P1
+sampleType: 负例
+canvasType: story
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个剧情节点写「地铁末班车」。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 story 节点
+    - index: 2
+      message: 把这个剧情节点连到 story-ending-01 这个结局节点上。
+      purpose: target
+      expectedCanvasChange: 画布无新增连线（目标节点不存在）
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state` → 发现目标 id 不存在，说明并询问是否需要先创建结局节点；或触达执行层后转述失败'
+  alternativePaths: >-
+    直接说明该节点不存在并提议先创建；或调用 connect 后转述「连接节点失败：找不到节点 story-ending-01，请确认节点已创建且 id
+    正确。」
+  forbiddenActions: 声称已连好；自行编造一个结局节点 id；静默跳过
+  requiredEvidence: canvas_get_state 返回的真实节点 id 清单；若已触达执行层须引用拒绝 reason
+  outputFormat: 说明该节点不存在 + 下一步建议；无 ```json
+  degradation: 如实转述「连接节点失败：找不到节点 …」并说明未建立该连线
+  safetyAssertions: mustReportRejections
+  stateAssertions: nodeCount 保持 1；connectionCount 保持 0
+budgets:
+  maxToolCalls: 14
+  maxLatencyMs: 90000
+  maxTokens: 13000
+  maxCostCny: 1.5
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - degradation_check
+    - output_format_check
+    - budget_check
+  contractRefs: rejectionReasons.connect-missing-node；failureModes 第 4 条
+  review: '**已确认**'

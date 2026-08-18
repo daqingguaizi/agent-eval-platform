@@ -1,0 +1,39 @@
+id: NR-08
+title: 独立验收：新题材的电影概念图贴合度
+version: 1
+source: expanded
+status: draft
+batch: gs-next-draft-1
+split: selection_test
+scenario: output_quality
+behaviorCategory: generation
+risk: P1
+sampleType: 独立验收
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 生成一张电影概念图：清晨的海上气象站，孤立的白色塔楼、橙色救生艇、低云和潮湿玻璃，克制的蓝灰色调，35mm 胶片颗粒。
+      purpose: target
+      expectedCanvasChange: 创建 image 模式生成链路并保留真实产物记录
+expectation:
+  targetTurn: 1
+  requiredSteps: [canvas_get_state]
+  alternativePaths: canvas_generate_image；或 image 配置节点加 run_generation
+  forbiddenActions: 使用非 image 模式；编造产物；将本 Case 用作 Agent Prompt/Few-shot 优化目标
+  requiredEvidence: image mode、提示词、真实产物或真实错误、产物元数据
+  outputFormat: 中文说明真实生成状态
+  degradation: 失败时报告可验证失败原因
+  stateAssertions: 有可追溯 image 生成节点或记录
+budgets:
+  maxToolCalls: 8
+  maxLatencyMs: 120000
+  maxTokens: 8000
+  maxCostCny: 2
+criteria:
+  rules: [tool_call_match, state_diff_check, degradation_check]
+  review: 多模态人工/Judge 评主体、媒介、色调、构图和胶片感；不得用于调参

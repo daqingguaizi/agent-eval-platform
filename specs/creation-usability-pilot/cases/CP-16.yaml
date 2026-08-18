@@ -1,0 +1,45 @@
+id: CP-16
+title: 餐桌与苹果双参考图的甜点海报
+status: draft
+source: source-derived
+sourceTaskIds: ["063", "093"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2i
+taskPattern: multi_reference_image_composition
+supportStatus: approximate
+coverageTags: [trigger_route, artifact_reply, multi_reference]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: dish_table.png
+    mediaType: image
+    sha256: 5db0d279451fb04e45ed07b8175f3e31efc00865814e8cb6d22bd41242f00e4e
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+  - fileName: red_apple.jpg
+    mediaType: image
+    sha256: 062410e34417638dbfcffc9c3ec795fccc29e85a52538a11329f778dbdba069d
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: dish_table.png
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+        - resourceRef: red_apple.jpg
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 第一张图是餐桌和餐具摆放，第二张图是苹果。请做一张甜点海报，把苹果做成盘中的主角，保留第一张图的餐具摆放、桌面材质和光影氛围。
+acceptance:
+  targetTurn: 1
+  keyPoints: [两个图片附件自动创建真实image节点, 同轮文本提示词节点, image模式, 苹果主体, 餐具桌面光影保留]
+  requiredEvidence: [两份附件资源哈希, 两个自动创建的真实image节点ID, 同轮文本节点, 两条图片参考连线, image生成记录, 可读产物或真实错误]
+  stateAssertions: [画布初始为空, 两个image节点均由附件上传创建, 两个image和text均连接image链路]
+  degradation: 仅验收多参考创作意图，不承诺像素级替换。
+riskFlags: [composer_attachment_protocol_pending, approximate_edit, multi_reference_provider_limit]

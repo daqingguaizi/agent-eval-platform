@@ -1,0 +1,41 @@
+id: CP-12
+title: 城市参考图的车流延时镜头
+status: draft
+source: source-derived
+sourceTaskIds: ["049"]
+tier: vanilla
+taskDomain: content_creation
+modality: i2v
+taskPattern: reference_image_to_video
+supportStatus: provider_gated
+coverageTags: [trigger_route, artifact_reply]
+canvasType: content
+initialState: blank
+resourceRefs:
+  - fileName: budapest_city.jpg
+    mediaType: image
+    sha256: 79538bbb8d7aee4bfb35ae768982b0d5b835728d5f563f71bb22368d638b584b
+    sourceDirectory: ${PILOT_RESOURCE_DIR}
+    inputMode: agent_composer_image_attachment
+    runnerProtocolPrerequisite: 未验证；Runner 必须复刻图片上传自动创建 image 节点的产品协议。
+input:
+  turns:
+    - index: 1
+      purpose: target
+      attachments:
+        - resourceRef: budapest_city.jpg
+          mediaType: image
+          expectedCanvasEffect: 自动创建真实 image 节点
+      message: 用我上传的城市图做四秒延时镜头：前景车流有轻微运动，建筑轮廓、机位和黄昏光线保持稳定。
+modelRouting:
+  videoProvider: qa3zsyxzc8
+  videoProviderLabel: 梦宝-2.0
+  durationSeconds: 4
+  requiredReferenceCount: 1
+acceptance:
+  targetTurn: 1
+  keyPoints: [图片附件自动创建真实image节点, 同轮文本提示词节点, video模式, 轻微车流运动, 建筑和机位保持]
+  requiredEvidence: [附件资源哈希, 自动创建的真实image节点ID, 同轮文本节点, 两条参考连线, video生成记录, 可播放产物或真实错误]
+  stateAssertions: [画布初始为空, image节点由附件上传创建, image和text均连接video链路]
+  degradation: 附件自动入画布或生成失败时不得虚报完成。
+riskFlags: [composer_attachment_protocol_pending, provider_variability]

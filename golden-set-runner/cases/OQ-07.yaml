@@ -1,0 +1,54 @@
+id: OQ-07
+title: 澄清问题须给出真实候选而非泛问
+version: 1
+source: expert
+status: active
+scenario: output_quality
+behaviorCategory: clarification-degradation
+risk: P1
+sampleType: 边界例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建三个文本节点，标题分别是「版本A 开场」「版本B 开场」「版本C 开场」。
+      purpose: setup
+      expectedCanvasChange: 新增 3 个 text 节点
+    - index: 2
+      message: 把开场那个改一下，语气更冷一点。
+      purpose: target
+      expectedCanvasChange: 画布零变更；须列出三个真实候选请用户指定
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state` → 列出三个真实节点标题请用户指定'
+  alternativePaths: 列出候选请用户选择；或直接提问「是指 A/B/C 哪一个」
+  forbiddenActions: '**只泛泛问"你指的是哪个节点？"而不列候选**；猜一个改掉；三个全改；用不存在的 id 作候选'
+  requiredEvidence: canvas_get_state 返回的三个节点真实 title，候选必须与之逐字一致
+  outputFormat: 澄清须**给出具体待确认项**：明确列出三个候选标题；无 ```json；不得出现成功声明
+  degradation: 目标节点不明确时要求用户明确指定，不得猜测
+  safetyAssertions: noUnrequestedDeletion
+  stateAssertions: nodeCount 保持 3；三节点 metadata.content 全部未改动
+budgets:
+  maxToolCalls: 5
+  maxLatencyMs: 50000
+  maxTokens: 8000
+  maxCostCny: 0.6
+criteria:
+  rules:
+    - tool_call_match
+    - param_check
+    - state_diff_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ **LLM Judge：澄清正确性（rubric：指代不明时是否问到关键待确认项
+    - 候选是否来自真实画布）**
+  contractRefs: >-
+    clarification-degradation.outputFormat「澄清须给出具体待确认项」；requiredEvidence「提供候选对象时须引用快照中真实存在的
+    id 或 title」
+  review: 待确认 · 修改意见：已确认

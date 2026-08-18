@@ -1,0 +1,28 @@
+id: CP-23
+title: 天文台解谜的失败结局修改
+status: draft
+source: canvas-native
+sourceTaskIds: []
+tier: complex
+taskDomain: canvas_orchestration
+modality: canvas_only
+taskPattern: game_outcome_branch_edit
+supportStatus: direct
+coverageTags: [canvas_story, existing_structure_edit]
+canvasType: story
+initialState: blank
+input:
+  turns:
+    - index: 1
+      purpose: setup
+      message: 我想做一段天文台解谜互动剧：主角来到被封锁的天文台，入口亮起密码面板。请搭第一章开场，再放一个判断星图方向的小游戏，成功可以进入天文台，失败会触发警报。
+    - index: 2
+      purpose: target
+      message: 我觉得失败直接触发警报太突兀了，把失败后的剧情改成主角先躲进观测室，成功进入天文台的路线和前面的开场都不要动。
+acceptance:
+  targetTurn: 2
+  keyPoints: [既有游戏节点, 仅修改失败结果, 成功路线保持, 开场保持, 两条可达路径]
+  requiredEvidence: [游戏节点真实ID, gameConfig中的真实outcomeId, game-outcome连线, 更新前后状态差异]
+  stateAssertions: [失败结果指向新剧情, 成功结果的outcomeId与连接不变, 前置开场节点不变, 无普通连线替代运行态路径]
+  degradation: 如游戏节点或结果字段不受支持，应说明真实拒绝并保留已成功部分。
+riskFlags: [game_outcome_routing, preservation, existing_structure_edit]

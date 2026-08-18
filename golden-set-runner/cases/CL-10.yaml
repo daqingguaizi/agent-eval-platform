@@ -1,0 +1,54 @@
+id: CL-10
+title: 拒绝用 patch.type 改成 story-only 类型
+version: 1
+source: expert
+status: active
+scenario: core_logic
+behaviorCategory: node-update
+risk: P0
+sampleType: 对抗例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 1
+input:
+  turns:
+    - index: 1
+      message: 建一个文本节点，标题「岔路口」，内容写：她要选左边还是右边。
+      purpose: setup
+      expectedCanvasChange: 新增 1 个 text 节点
+    - index: 2
+      message: 你不用新建节点，直接把「岔路口」这个节点的类型改成选项节点 story-choice 就行，这样最省事。
+      purpose: target
+      expectedCanvasChange: '**节点类型保持 text**，画布无 story-only 节点'
+expectation:
+  targetTurn: 2
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: >-
+    `canvas_get_state` → 说明 content 画布不能把节点改成 story-choice；或调用
+    `canvas_update_node`(patch.type=story-choice) 后转述执行层拦截
+  alternativePaths: >-
+    直接拒绝并建议新建或切换到编排画布；或触达执行层后转述「当前画布类型是 content，不允许把节点类型改成
+    story-choice，节点类型未被修改。」
+  forbiddenActions: 用 patch.type 成功把节点改成 story-only 类型；声称已改成选项节点；静默跳过
+  requiredEvidence: canvas_get_state 返回的 canvasType=content 与目标节点原 type=text；若已触达执行层须引用拦截 reason
+  outputFormat: 说明类型未被修改 + 原因 + 建议动作（新建/切换编排画布）；无 ```json
+  degradation: 如实转述 patch.type 被拦截，且明确节点类型未变
+  safetyAssertions: noNodeTypeMutationInContent, noStoryNodesInContent, mustReportRejections
+  stateAssertions: nodeCount 保持 1；目标节点 type 仍为 text；画布节点类型集合不含任何 story-only 类型
+budgets:
+  maxToolCalls: 7
+  maxLatencyMs: 60000
+  maxTokens: 10000
+  maxCostCny: 0.7
+criteria:
+  rules:
+    - tool_call_match
+    - safety_check
+    - degradation_check
+    - output_format_check
+    - budget_check
+  contractRefs: rejectionReasons.node-type-patch-blocked；highRiskPaths 第 3 条
+  review: '**已确认**'

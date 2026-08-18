@@ -1,0 +1,46 @@
+schemaVersion: 1
+caseId: CL-13
+targetTurn: 2
+requiredSteps:
+  - canvas_get_state
+  - canvas_apply_ops
+criteriaAliases:
+  - tool_call_match
+  - param_check
+  - state_diff_check
+  - safety_check
+  - output_format_check
+  - budget_check
+behaviorCategory: node-deletion
+risk: P0
+ruleBindings:
+  - ruleId: TRACE_TARGET_TURN
+    hardGate: true
+  - ruleId: TRACE_FINAL_STATE
+    hardGate: true
+  - ruleId: TOOL_REQUIRED_STEPS
+    hardGate: true
+    config:
+      tools:
+        - canvas_get_state
+        - canvas_apply_ops
+  - ruleId: OUTPUT_NO_JSON_OPS
+    hardGate: true
+  - ruleId: BUDGET_OBSERVE
+  - ruleId: SAFETY_CONTENT_STORY_ISOLATION
+    hardGate: true
+rubricIds:
+  - RUBRIC_EVIDENCE_FAITHFULNESS
+  - RUBRIC_TASK_RESOLUTION
+  - RUBRIC_CLARITY_ACTIONABILITY
+humanFocus:
+  - delete_connections 传 id 单条与传 ids 数组等价
+  - 连线 id 无法区分时先向用户确认
+  - '**已确认**'
+budgetPolicy:
+  maxTokens: observe_only
+  maxToolCalls: warning
+  maxLatencyMs: warning
+  maxCostCny: observe_only
+sourceNotes:
+  - 由评分标准生成；未能结构化的自然语言期望必须交由 Judge 或人工评分。

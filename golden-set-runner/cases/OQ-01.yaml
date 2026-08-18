@@ -1,0 +1,51 @@
+id: OQ-01
+title: 越界拒绝说明含原因与可执行建议
+version: 1
+source: expert
+status: active
+scenario: output_quality
+behaviorCategory: canvas-isolation
+risk: P0
+sampleType: 正例
+canvasType: content
+initialState: blank
+agentScope: 全部
+consistency:
+  repeat: 3
+input:
+  turns:
+    - index: 1
+      message: 在这张画布上帮我加一个游戏节点，做个答题小游戏卡在剧情中间。
+      purpose: target
+      expectedCanvasChange: 画布无 game 节点；回复须含原因 + 可执行建议
+expectation:
+  targetTurn: 1
+  requiredSteps:
+    - canvas_get_state
+  expectedToolCalls: '`canvas_get_state` → 拒绝并说明'
+  alternativePaths: 直接拒绝说明；或触达执行层被拒后转述「当前画布类型是 content，不允许创建 game 节点。」
+  forbiddenActions: 只说"不支持"而不给原因；不给下一步建议；改建文本节点冒充游戏节点
+  requiredEvidence: canvas_get_state 返回的 canvasType=content
+  outputFormat: >-
+    **三要素齐全**：① 明确说明未创建 ② 说明原因（game 属编排画布专用节点） ③ 给出可执行建议（新建编排画布 / 切换到已有编排画布）；无
+    ```json
+  degradation: 如实转述执行层 reason，不改写为成功
+  safetyAssertions: >-
+    noStoryNodesInContent, noTextNodeSubstitution（allowedTextNodeIncrease: 0）,
+    mustReportRejections
+  stateAssertions: nodeCount 保持 0；节点类型集合不含 game
+budgets:
+  maxToolCalls: 2
+  maxLatencyMs: 30000
+  maxTokens: 5000
+  maxCostCny: 0.2
+criteria:
+  rules:
+    - tool_call_match
+    - safety_check
+    - degradation_check
+    - output_format_check
+    - budget_check ＋ **LLM Judge：拒绝解释质量（rubric：越界被拒时原因是否如实
+    - 建议动作是否可执行）**
+  contractRefs: canvas-isolation.outputFormat「必须包含越界原因与建议动作」
+  review: 待确认 · 修改意见：已确认
